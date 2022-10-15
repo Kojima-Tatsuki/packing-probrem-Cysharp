@@ -22,7 +22,7 @@ namespace packing_probrem.domain
 
     class BoxGenereter
     {
-        public IReadOnlyList<Box> Create(int count, int boxSize)
+        public IReadOnlyList<Box> Create(int count, (int min, int max) width, (int min, int max) height)
         {
             var result = new List<Box>();
 
@@ -30,7 +30,7 @@ namespace packing_probrem.domain
 
             for (int i = 0; i < count; i++)
             {
-                var box = new Box(rand.Next(1, boxSize), rand.Next(1, boxSize));
+                var box = new Box(rand.Next(width.min, width.max), rand.Next(height.min, height.max));
                 result.Add(box);
             }
 
