@@ -6,7 +6,7 @@ using packing_probrem.Search.Extentions;
 
 namespace packing_probrem.Search
 {
-    class LocalSearch
+    class LocalSearch : ISearch
     {
         private readonly IAlgolism Algolism;
 
@@ -15,12 +15,12 @@ namespace packing_probrem.Search
             Algolism = algolism;
         }
 
-        public (int score, IReadOnlyList<Box> order, IReadOnlyList<int> scores) Search(IReadOnlyList<Box> init)
+        public SearchResult Search(IReadOnlyList<Box> init)
         {
             var bestScore = Algolism.Cal(init);
             var bestOrder = init;
 
-            var changed = IsInclodeMore(init);
+            var changed = IsIncludeMore(init);
 
             var scores = new List<int>();
             scores.Add(bestScore.score);
@@ -38,13 +38,13 @@ namespace packing_probrem.Search
 
                 Console.WriteLine($"[{i}]: score {bestScore.score}");
 
-                changed = IsInclodeMore(bestOrder);
+                changed = IsIncludeMore(bestOrder);
             }
 
-            return (bestScore.score, bestOrder, scores);
+            return new SearchResult(bestScore.score, bestOrder, scores);
         }
 
-        private (bool isInclude, int score, IReadOnlyList<Box> order) IsInclodeMore(IReadOnlyList<Box> rects)
+        private (bool isInclude, int score, IReadOnlyList<Box> order) IsIncludeMore(IReadOnlyList<Box> rects)
         {
             var bestResult = Algolism.Cal(rects);
             var bestOrder = rects;

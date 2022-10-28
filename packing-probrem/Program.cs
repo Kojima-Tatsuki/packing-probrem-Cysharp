@@ -14,20 +14,22 @@ namespace packing_probrem
     {
         static void Main(string[] args)
         {
-            // Console.WriteLine("Hello World!");
-
-            var readFilePath = "\\probrems\\pushRect.csv";
+            string readFilePath(int num) => $"\\probrems\\pushRect-{num}.csv";
 
             var br = new BoxReader();
+            IReadOnlyList<Box> loadedBoxes = new List<Box>();
 
-            var loadedBoxes = br.ReadBoxesFromFile(Environment.CurrentDirectory + readFilePath);
-            loadedBoxes = new BoxGenereter().Create(80, (3, 13), (5, 13));
+            var boxCount = 20;
+            if (File.Exists(Environment.CurrentDirectory + readFilePath(boxCount)))
+                loadedBoxes = br.ReadBoxesFromFile(Environment.CurrentDirectory + readFilePath(boxCount));
+            else
+                loadedBoxes = new BoxGenereter().Create(boxCount, (3, 10), (5, 10));
+
+            br.WriteBoxesToFile(Environment.CurrentDirectory + readFilePath(boxCount), loadedBoxes);
 
             Console.WriteLine("Loaded Boxes");
             for (int i = 0; i < loadedBoxes.Count; i++)
-            {
                 Console.WriteLine($"[{i}]: {loadedBoxes[i]}");
-            }
 
             var section = new Section(new Box(24, 16));
 
@@ -41,48 +43,61 @@ namespace packing_probrem
 
             var result = ls.Search(loadedBoxes);
 
-            var drawer = new SquareDrawer(section.Width, result.score);
+            // 図形描画
 
-            var cal = bl.Cal(result.order);
+            var cal = bl.Cal(result.Order);
+            var drawer = new SquareDrawer(section.Width, result.Score);
 
             foreach (var rect in cal.pushed)
-            {
                 drawer.SetRect(rect);
-            }
 
             drawer.DrawAllSquare();
 
+            // コンソール出力
+
             Console.WriteLine("\nEnd Calculate");
 
-            Console.WriteLine($"Score: {result.score}");
-            for (int i = 0; i < result.scores.Count; i++)
-            {
-                Console.WriteLine($"[{i}]: {result.scores[i]}");
-            }
+            var lsr = new ResultConstoler(result, bl, section);
 
-            Console.WriteLine("Order");
-            for (int i = 0; i < cal.pushed.Count; i++)
-            {
-                Console.WriteLine($"[{i}]: {cal.pushed[i]}");
-            }
-
-            Console.WriteLine("BL");
-            var st = bl.GetBLStablePoints(section.StablePoints, cal.pushed).SortedPoints();
-            for (int i = 0; i < st.Count; i++)
-            {
-                Console.WriteLine($"[{i}]: {st[i]}");
-            }
+            // ファイル書き込み
 
             var writer = new ResultWriter();
-            writer.Write(new ResultWriter.WriteCommand(
-                path: Environment.CurrentDirectory + $"\\result\\pushed-{loadedBoxes.Count}.txt",
-                score: result.score,
-                section: section,
-                boxes: loadedBoxes,
-                scores: result.scores,
-                rects: cal.pushed,
-                bls: st
-                ));
+            writer.Write(
+                filePath: Environment.CurrentDirectory + $"\\result\\pushed-{loadedBoxes.Count}.txt",
+                constoler: lsr);
+        }
+    }
+
+    internal class ResultConstoler
+    {
+        public SearchResult Result { get; }
+        public IReadOnlyList<Rect> Pushed { get; }
+        public IReadOnlyList<domain.Point> Points { get; }
+        public Section Section { get; }
+
+        public ResultConstoler(SearchResult result, BottomLeftAlgolism algolism, Section section)
+        {
+            Result = result;
+            Section = section;
+            Pushed = algolism.Cal(result.Order).pushed;
+            Points = algolism.GetBLStablePoints(section.StablePoints, Pushed);
+
+            WriteOnConsole();
+        }
+
+        private void WriteOnConsole()
+        {
+            Console.WriteLine($"Score: {Result.Score}");
+            for (int i = 0; i < Result.Scores.Count; i++)
+                Console.WriteLine($"[{i}]: {Result.Scores[i]}");
+
+            Console.WriteLine("Order");
+            for (int i = 0; i < Pushed.Count; i++)
+                Console.WriteLine($"[{i}]: {Pushed[i]}");
+
+            Console.WriteLine("BL");
+            for (int i = 0; i < Points.Count; i++)
+                Console.WriteLine($"[{i}]: {Points[i]}");
         }
     }
 
@@ -110,6 +125,19 @@ namespace packing_probrem
             {
                 sw.WriteLine($"[{i}]: {command.PushedRects[i]}");
             }
+        }
+
+        public void Write(string filePath, ResultConstoler constoler)
+        {
+            var command = new WriteCommand(
+                filePath,
+                constoler.Result.Score,
+                constoler.Section,
+                constoler.Result.Order,
+                constoler.Result.Scores,
+                constoler.Pushed,
+                constoler.Points);
+            Write(command);
         }
 
         internal class WriteCommand
