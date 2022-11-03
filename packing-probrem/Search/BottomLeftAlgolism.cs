@@ -22,7 +22,7 @@ namespace packing_probrem.Search
         {
             var pushed = new List<Rect>();
 
-            if (boxes.Count == 0)
+            if (boxes == null ||boxes.Count == 0)
                 return (0, pushed);
 
             var stables = MotherSection.StablePoints;

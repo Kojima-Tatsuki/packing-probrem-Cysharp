@@ -1,12 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Text;
 
 namespace packing_probrem.domain
 {
     /// <summary>座標を持たない箱</summary>
-    class Box
+    class Box : IEquatable<Box>
     {
         public int Width { get; }
         public int Height { get; }
@@ -18,6 +19,13 @@ namespace packing_probrem.domain
         }
 
         public override string ToString() => $"({Width}, {Height})";
+
+        public bool Equals(Box other)
+        {
+            if (Width == other.Width && Height == other.Height)
+                return true;
+            return false;
+        }
     }
 
     class BoxGenereter

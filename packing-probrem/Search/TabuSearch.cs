@@ -30,18 +30,26 @@ namespace packing_probrem.Search
 
             Console.WriteLine($"init serach {bestScore.score}");
             Console.WriteLine($"init isChanged {changed.isInclude}");
-            var i = 1;
+            int i = 1, currentScoreLoops = 0;
 
             while (changed.isInclude)
             {
+                if (bestScore.score > changed.score) {
+                    currentScoreLoops = 0;
+                    scores.Add(changed.score);
+                }
+                else if (currentScoreLoops >= 200)
+                    break;
+
                 bestScore.score = changed.score;
                 bestOrder = changed.orders.First();
-                scores.Add(changed.score);
 
-                Console.WriteLine($"[{i}]: score {bestScore.score}");
+                // Console.WriteLine($"[{i}]: score {bestScore.score}, {changed.orders.Count}, current: {currentScoreLoops}");
 
                 tabuList.Add(bestOrder);
                 changed = IsIncludeMores(bestOrder, tabuList);
+                i++;
+                currentScoreLoops++;
             }
 
             return new SearchResult(bestScore.score, bestOrder, scores);
@@ -54,22 +62,20 @@ namespace packing_probrem.Search
             var bestResult = Algolism.Cal(rects);
             var bestOrders = new List<IReadOnlyList<Box>>();
 
-            for (int i = 0; i < rects.Count - 1; i++)
+            for (int i = 0; i < rects.Count - 2; i++)
             {
-                for (int k = i + 1; k < rects.Count; k++)
+                for (int k = i + 1; k < rects.Count - 1; k++)
                 {
-                    if (i == 0 && k == rects.Count - 1)
-                        continue;
-
                     var order = rects.ChangeOrder(i, k);
                     // 並び変えた後の配列がタブーリストと一致しているなら探索しない
-                    if (tabus.Any(tabu => tabu.Equals(order)))
+                    if (tabus.Any(tabu => tabu.SequenceEqual(order)))
                         continue;
 
                     var calResult = Algolism.Cal(order);
 
                     if (calResult.score < bestResult.score)
                     {
+                        // Console.WriteLine("より良い解が見つかったよ！！");
                         bestOrders = new List<IReadOnlyList<Box>> { order };
                         bestResult = calResult;
                     }

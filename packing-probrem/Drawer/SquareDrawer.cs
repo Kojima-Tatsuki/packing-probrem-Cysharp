@@ -70,6 +70,7 @@ namespace packing_probrem.ConsoleDrawer
             Console.ForegroundColor = ConsoleColor.White;
             Console.CursorVisible = false;
             Console.BackgroundColor = ConsoleColor.Black;
+            Console.WriteLine("\n");
         }
 
         /// <summary>

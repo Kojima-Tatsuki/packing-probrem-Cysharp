@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
+using System.Linq;
 using System.Text;
 using packing_probrem.ConsoleDrawer;
 using packing_probrem.domain;
@@ -19,7 +20,7 @@ namespace packing_probrem
             var br = new BoxReader();
             IReadOnlyList<Box> loadedBoxes = new List<Box>();
 
-            var boxCount = 20;
+            var boxCount = 14;
             if (File.Exists(Environment.CurrentDirectory + readFilePath(boxCount)))
                 loadedBoxes = br.ReadBoxesFromFile(Environment.CurrentDirectory + readFilePath(boxCount));
             else
@@ -37,34 +38,46 @@ namespace packing_probrem
 
             var bl = new BottomLeftAlgolism(section, false);
 
-            var ls = new LocalSearch(bl);
+            var searchs = new List<ISearch>()
+            {
+                new LocalSearch(bl),
+                new TabuSearch(bl),
+                new RandomPartialNeighborhoodSearch(bl, 0.9f)
+            };
 
             Console.WriteLine("Start Search");
 
-            var result = ls.Search(loadedBoxes);
+            var results = searchs
+                .Select(s => s.Search(loadedBoxes))
+                .ToList();
 
             // 図形描画
 
-            var cal = bl.Cal(result.Order);
-            var drawer = new SquareDrawer(section.Width, result.Score);
+            foreach (var result in results)
+            {
+                var cal = bl.Cal(result.Order);
+                var drawer = new SquareDrawer(section.Width, result.Score);
 
-            foreach (var rect in cal.pushed)
-                drawer.SetRect(rect);
+                foreach (var rect in cal.pushed)
+                    drawer.SetRect(rect);
 
-            drawer.DrawAllSquare();
+                drawer.DrawAllSquare();
+            }
 
             // コンソール出力
 
             Console.WriteLine("\nEnd Calculate");
 
-            var lsr = new ResultConstoler(result, bl, section);
+            var lsrs = results
+                .Select(res => new ResultConstoler(res, bl, section))
+                .ToList();
 
             // ファイル書き込み
 
             var writer = new ResultWriter();
             writer.Write(
                 filePath: Environment.CurrentDirectory + $"\\result\\pushed-{loadedBoxes.Count}.txt",
-                constoler: lsr);
+                constolers: lsrs);
         }
     }
 
@@ -87,6 +100,7 @@ namespace packing_probrem
 
         private void WriteOnConsole()
         {
+            Console.WriteLine("\n");
             Console.WriteLine($"Score: {Result.Score}");
             for (int i = 0; i < Result.Scores.Count; i++)
                 Console.WriteLine($"[{i}]: {Result.Scores[i]}");
@@ -120,7 +134,7 @@ namespace packing_probrem
             {
                 sw.WriteLine($"[{i}]: {command.Scores[i]}");
             }
-            sw.WriteLine($"PushedRects, coun: {command.PushedRects.Count}");
+            sw.WriteLine($"PushedRects, count: {command.PushedRects.Count}");
             for (int i = 0; i < command.PushedRects.Count; i++)
             {
                 sw.WriteLine($"[{i}]: {command.PushedRects[i]}");
@@ -138,6 +152,32 @@ namespace packing_probrem
                 constoler.Pushed,
                 constoler.Points);
             Write(command);
+        }
+
+        public void Write(string filePath, IReadOnlyList<ResultConstoler> constolers)
+        {
+            using var sw = new StreamWriter(filePath, append: true, encoding: Encoding.UTF8);
+
+            var def = constolers.FirstOrDefault();
+
+            sw.WriteLine($"Section: {def.Section}");
+            sw.WriteLine($"Put Boxes, count: {def.Result.Order.Count}");
+            for (int i = 0; i < def.Result.Order.Count; i++)
+                sw.WriteLine($"[{i}]: {def.Result.Order[i]}");
+
+            foreach (var cons in constolers)
+            {
+                sw.WriteLine($"Best Score: {cons.Result.Score}");
+                for (int i = 0; i < cons.Result.Scores.Count; i++)
+                {
+                    sw.WriteLine($"[{i}]: {cons.Result.Scores[i]}");
+                }
+                sw.WriteLine($"PushedRects, count: {cons.Pushed.Count}");
+                for (int i = 0; i < cons.Pushed.Count; i++)
+                {
+                    sw.WriteLine($"[{i}]: {cons.Pushed[i]}");
+                }
+            }
         }
 
         internal class WriteCommand

@@ -17,31 +17,31 @@ namespace packing_probrem.Search
 
         public SearchResult Search(IReadOnlyList<Box> init)
         {
-            var bestScore = Algolism.Cal(init);
+            var bestScore = Algolism.Cal(init).score;
             var bestOrder = init;
 
             var changed = IsIncludeMore(init);
 
             var scores = new List<int>();
-            scores.Add(bestScore.score);
+            scores.Add(bestScore);
 
-            Console.WriteLine($"init serach {bestScore.score}");
+            Console.WriteLine($"init serach {bestScore}");
             Console.WriteLine($"init isChanged {changed.isInclude}");
 
             var i = 1;
 
             while (changed.isInclude)
             {
-                bestScore.score = changed.score;
+                bestScore = changed.score;
                 bestOrder = changed.order;
                 scores.Add(changed.score);
 
-                Console.WriteLine($"[{i}]: score {bestScore.score}");
+                //Console.WriteLine($"[{i}]: score {bestScore}");
 
                 changed = IsIncludeMore(bestOrder);
             }
 
-            return new SearchResult(bestScore.score, bestOrder, scores);
+            return new SearchResult(bestScore, bestOrder, scores);
         }
 
         private (bool isInclude, int score, IReadOnlyList<Box> order) IsIncludeMore(IReadOnlyList<Box> rects)
@@ -51,13 +51,10 @@ namespace packing_probrem.Search
 
             var result = false;
 
-            for (int i = 0; i < rects.Count - 1; i++)
+            for (int i = 0; i < rects.Count - 2; i++)
             {
-                for (int k = i + 1; k < rects.Count; k++)
+                for (int k = i + 1; k < rects.Count - 1; k++)
                 {
-                    if (i == 0 && k == rects.Count - 1)
-                        continue;
-
                     var order = rects.ChangeOrder(i, k);
                     var calResult = Algolism.Cal(order);
 
