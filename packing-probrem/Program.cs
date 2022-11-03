@@ -20,7 +20,7 @@ namespace packing_probrem
             var br = new BoxReader();
             IReadOnlyList<Box> loadedBoxes = new List<Box>();
 
-            var boxCount = 14;
+            var boxCount = 20;
             if (File.Exists(Environment.CurrentDirectory + readFilePath(boxCount)))
                 loadedBoxes = br.ReadBoxesFromFile(Environment.CurrentDirectory + readFilePath(boxCount));
             else
@@ -42,21 +42,24 @@ namespace packing_probrem
             {
                 new LocalSearch(bl),
                 new TabuSearch(bl),
-                new RandomPartialNeighborhoodSearch(bl, 0.9f)
+                new RandomPartialNeighborhoodSearch(bl, 0.95f),
+                new RandomPartialNeighborhoodSearch(bl, 0.9f),
+                new RandomPartialNeighborhoodSearch(bl, 0.85f),
+                new RandomPartialNeighborhoodSearch(bl, 0.8f)
             };
 
             Console.WriteLine("Start Search");
 
             var results = searchs
-                .Select(s => s.Search(loadedBoxes))
+                .Select(s => (result: s.Search(loadedBoxes), name: s.ToString()))
                 .ToList();
 
             // 図形描画
 
             foreach (var result in results)
             {
-                var cal = bl.Cal(result.Order);
-                var drawer = new SquareDrawer(section.Width, result.Score);
+                var cal = bl.Cal(result.result.Order);
+                var drawer = new SquareDrawer(section.Width, result.result.Score);
 
                 foreach (var rect in cal.pushed)
                     drawer.SetRect(rect);
@@ -69,7 +72,7 @@ namespace packing_probrem
             Console.WriteLine("\nEnd Calculate");
 
             var lsrs = results
-                .Select(res => new ResultConstoler(res, bl, section))
+                .Select(res => new ResultConstoler(res.result, bl, section, res.name))
                 .ToList();
 
             // ファイル書き込み
@@ -83,17 +86,19 @@ namespace packing_probrem
 
     internal class ResultConstoler
     {
+        public string SearchAlgolismName { get; }
         public SearchResult Result { get; }
         public IReadOnlyList<Rect> Pushed { get; }
         public IReadOnlyList<domain.Point> Points { get; }
         public Section Section { get; }
 
-        public ResultConstoler(SearchResult result, BottomLeftAlgolism algolism, Section section)
+        public ResultConstoler(SearchResult result, BottomLeftAlgolism algolism, Section section, string searchAlgolismName)
         {
             Result = result;
             Section = section;
             Pushed = algolism.Cal(result.Order).pushed;
             Points = algolism.GetBLStablePoints(section.StablePoints, Pushed);
+            SearchAlgolismName = searchAlgolismName;
 
             WriteOnConsole();
         }
@@ -164,19 +169,20 @@ namespace packing_probrem
             sw.WriteLine($"Put Boxes, count: {def.Result.Order.Count}");
             for (int i = 0; i < def.Result.Order.Count; i++)
                 sw.WriteLine($"[{i}]: {def.Result.Order[i]}");
+            Console.WriteLine("\n");
 
             foreach (var cons in constolers)
             {
+                sw.WriteLine(cons.SearchAlgolismName);
                 sw.WriteLine($"Best Score: {cons.Result.Score}");
+
                 for (int i = 0; i < cons.Result.Scores.Count; i++)
-                {
                     sw.WriteLine($"[{i}]: {cons.Result.Scores[i]}");
-                }
+
                 sw.WriteLine($"PushedRects, count: {cons.Pushed.Count}");
                 for (int i = 0; i < cons.Pushed.Count; i++)
-                {
                     sw.WriteLine($"[{i}]: {cons.Pushed[i]}");
-                }
+                sw.WriteLine("\n");
             }
         }
 

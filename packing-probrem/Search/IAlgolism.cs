@@ -27,5 +27,7 @@ namespace packing_probrem.Search
     interface ISearch
     {
        SearchResult Search(IReadOnlyList<Box> boxes);
+
+        string ToString();
     }
 }

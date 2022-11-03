@@ -27,6 +27,8 @@ namespace packing_probrem.Search
 
         public SearchResult Search(IReadOnlyList<Box> init)
         {
+            Console.WriteLine($"Start PRNS, {PartialRatio}");
+
             var bestScore = Algolism.Cal(init).score;
             var bestOrder = init;
 
@@ -34,17 +36,21 @@ namespace packing_probrem.Search
 
             var changed = GetNaightborhoodBest(init);
 
-            for (int i = 0; i < 50; i++)
+            int i = 0;
+
+            while (i < 200)
             {
                 if (changed.score < bestScore)
                 {
                     bestScore = changed.score;
                     bestOrder = changed.order;
                     scores.Add(bestScore);
+                    i = 0;
                 }
 
                 //Console.WriteLine($"[{i}]: current score {bestScore}");
                 changed = GetNaightborhoodBest(changed.order);
+                i++;
             }
 
             return new SearchResult(bestScore, bestOrder, scores);
@@ -81,6 +87,11 @@ namespace packing_probrem.Search
             var resultOrder = bestOrders[Random.Next(0, bestOrders.Count)];
 
             return (bestResult, resultOrder);
+        }
+
+        public override string ToString()
+        {
+            return $"RandomPartialNeighborhoodSearch {PartialRatio}";
         }
     }
 }

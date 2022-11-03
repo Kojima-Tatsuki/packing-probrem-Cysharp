@@ -19,6 +19,8 @@ namespace packing_probrem.Search
 
         public SearchResult Search(IReadOnlyList<Box> init)
         {
+            Console.WriteLine("Start Tabu Search");
+
             var tabuList = new List<IReadOnlyList<Box>>() { init };
 
             var bestScore = Algolism.Cal(init);
@@ -28,8 +30,6 @@ namespace packing_probrem.Search
 
             var scores = new List<int> { bestScore.score };
 
-            Console.WriteLine($"init serach {bestScore.score}");
-            Console.WriteLine($"init isChanged {changed.isInclude}");
             int i = 1, currentScoreLoops = 0;
 
             while (changed.isInclude)
@@ -87,6 +87,11 @@ namespace packing_probrem.Search
             var isChangeable = bestOrders.Count > 0;
 
             return (isChangeable, bestResult.score, bestOrders);
+        }
+
+        public override string ToString()
+        {
+            return "Tabu Search";
         }
     }
 }
