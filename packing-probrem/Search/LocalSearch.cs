@@ -6,6 +6,7 @@ using packing_probrem.Search.Extentions;
 
 namespace packing_probrem.Search
 {
+    // 局所探索
     class LocalSearch : ISearch
     {
         private readonly IAlgolism Algolism;
@@ -40,9 +41,11 @@ namespace packing_probrem.Search
                 changed = IsIncludeMore(bestOrder);
             }
 
+            Console.WriteLine("End Local Search");
             return new SearchResult(bestScore, bestOrder, scores);
         }
 
+        // より良い解が存在するか
         private (bool isInclude, int score, IReadOnlyList<Box> order) IsIncludeMore(IReadOnlyList<Box> rects)
         {
             var bestResult = Algolism.Cal(rects);

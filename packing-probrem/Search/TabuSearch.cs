@@ -34,11 +34,12 @@ namespace packing_probrem.Search
 
             while (changed.isInclude)
             {
+                // スコアの更新
                 if (bestScore.score > changed.score) {
                     currentScoreLoops = 0;
                     scores.Add(changed.score);
                 }
-                else if (currentScoreLoops >= 200)
+                else if (currentScoreLoops >= 200) // スコアの更新から200回の実行で終了
                     break;
 
                 bestScore.score = changed.score;
@@ -46,12 +47,13 @@ namespace packing_probrem.Search
 
                 // Console.WriteLine($"[{i}]: score {bestScore.score}, {changed.orders.Count}, current: {currentScoreLoops}");
 
-                tabuList.Add(bestOrder);
+                tabuList.Add(bestOrder); // タブーリストに追加
                 changed = IsIncludeMores(bestOrder, tabuList);
                 i++;
                 currentScoreLoops++;
             }
 
+            Console.WriteLine("End Tabu Search");
             return new SearchResult(bestScore.score, bestOrder, scores);
         }
 

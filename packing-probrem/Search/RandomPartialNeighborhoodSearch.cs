@@ -53,6 +53,7 @@ namespace packing_probrem.Search
                 i++;
             }
 
+            Console.WriteLine($"End PRNS, {PartialRatio}");
             return new SearchResult(bestScore, bestOrder, scores);
         }
 

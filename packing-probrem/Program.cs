@@ -4,6 +4,7 @@ using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 using packing_probrem.ConsoleDrawer;
 using packing_probrem.domain;
 using packing_probrem.domain.Extentions;
@@ -20,7 +21,7 @@ namespace packing_probrem
             var br = new BoxReader();
             IReadOnlyList<Box> loadedBoxes = new List<Box>();
 
-            var boxCount = 20;
+            var boxCount = 45;
             if (File.Exists(Environment.CurrentDirectory + readFilePath(boxCount)))
                 loadedBoxes = br.ReadBoxesFromFile(Environment.CurrentDirectory + readFilePath(boxCount));
             else
@@ -32,6 +33,54 @@ namespace packing_probrem
             for (int i = 0; i < loadedBoxes.Count; i++)
                 Console.WriteLine($"[{i}]: {loadedBoxes[i]}");
 
+            var doer = new Doer();
+
+            List<Dictionary<string, int>> lst = new List<Dictionary<string, int>>();
+
+            for (int i = 0; i < 10; i++)
+                lst.Add(doer.Do(new BoxGenereter().Create(boxCount, (3, 10), (5, 10))));
+
+            using var sw = new StreamWriter(
+                path: Environment.CurrentDirectory + $"\\result\\pushed-{loadedBoxes.Count}.txt",
+                append: true);
+
+            sw.WriteLine("Result\n");
+
+            var re = new Dictionary<string, List<int>>();
+
+            foreach (var l in lst)
+            {
+                foreach (var d in l)
+                {
+                    if (re.ContainsKey(d.Key))
+                        re[d.Key].Add(d.Value);
+                    else
+                        re[d.Key] = new List<int> { d.Value };
+                }
+            }
+
+            foreach (var item in re)
+            {
+                int sum = 0, best = -1, warst = -1;
+
+                foreach (var current in item.Value)
+                {
+                    sum += current;
+                    if (current < best || best == -1)
+                        best = current;
+                    if (warst < current || warst == -1)
+                        warst = current;
+                }
+
+                sw.WriteLine($"{item.Key}\nAve: {(float)sum / item.Value.Count}, Best: {best}, Wearst: {warst}\n");
+            }
+        }
+    }
+
+    internal class Doer
+    {
+        public Dictionary<string, int> Do(IReadOnlyList<Box> loadedBoxes)
+        {
             var section = new Section(new Box(24, 16));
 
             Console.WriteLine($"Section {section}");
@@ -51,6 +100,7 @@ namespace packing_probrem
             Console.WriteLine("Start Search");
 
             var results = searchs
+                .AsParallel()
                 .Select(s => (result: s.Search(loadedBoxes), name: s.ToString()))
                 .ToList();
 
@@ -81,6 +131,8 @@ namespace packing_probrem
             writer.Write(
                 filePath: Environment.CurrentDirectory + $"\\result\\pushed-{loadedBoxes.Count}.txt",
                 constolers: lsrs);
+
+            return results.ToDictionary(pair => pair.name, pair => pair.result.Score);
         }
     }
 
@@ -105,18 +157,17 @@ namespace packing_probrem
 
         private void WriteOnConsole()
         {
-            Console.WriteLine("\n");
             Console.WriteLine($"Score: {Result.Score}");
             for (int i = 0; i < Result.Scores.Count; i++)
                 Console.WriteLine($"[{i}]: {Result.Scores[i]}");
-
+            /*
             Console.WriteLine("Order");
             for (int i = 0; i < Pushed.Count; i++)
                 Console.WriteLine($"[{i}]: {Pushed[i]}");
 
             Console.WriteLine("BL");
             for (int i = 0; i < Points.Count; i++)
-                Console.WriteLine($"[{i}]: {Points[i]}");
+                Console.WriteLine($"[{i}]: {Points[i]}");*/
         }
     }
 
@@ -128,6 +179,8 @@ namespace packing_probrem
                 path: command.filePath,
                 append: true,
                 encoding: Encoding.UTF8);
+            sw.WriteLine($"Wtite date: {DateTime.Now}");
+
             sw.WriteLine($"Section: {command.MotherSection}");
             sw.WriteLine($"Put Boxes, count: {command.PutBox.Count}");
             for (int i = 0; i < command.PutBox.Count; i++)
@@ -144,6 +197,7 @@ namespace packing_probrem
             {
                 sw.WriteLine($"[{i}]: {command.PushedRects[i]}");
             }
+            Console.WriteLine("\n");
         }
 
         public void Write(string filePath, ResultConstoler constoler)
@@ -163,27 +217,30 @@ namespace packing_probrem
         {
             using var sw = new StreamWriter(filePath, append: true, encoding: Encoding.UTF8);
 
+            sw.WriteLine($"Wtite date: {DateTime.Now}");
+
             var def = constolers.FirstOrDefault();
 
             sw.WriteLine($"Section: {def.Section}");
             sw.WriteLine($"Put Boxes, count: {def.Result.Order.Count}");
             for (int i = 0; i < def.Result.Order.Count; i++)
                 sw.WriteLine($"[{i}]: {def.Result.Order[i]}");
-            Console.WriteLine("\n");
 
             foreach (var cons in constolers)
             {
+                sw.WriteLine();
                 sw.WriteLine(cons.SearchAlgolismName);
                 sw.WriteLine($"Best Score: {cons.Result.Score}");
 
                 for (int i = 0; i < cons.Result.Scores.Count; i++)
                     sw.WriteLine($"[{i}]: {cons.Result.Scores[i]}");
 
-                sw.WriteLine($"PushedRects, count: {cons.Pushed.Count}");
+                /*sw.WriteLine($"PushedRects, count: {cons.Pushed.Count}");
                 for (int i = 0; i < cons.Pushed.Count; i++)
-                    sw.WriteLine($"[{i}]: {cons.Pushed[i]}");
-                sw.WriteLine("\n");
+                    sw.WriteLine($"[{i}]: {cons.Pushed[i]}");*/
             }
+
+            sw.WriteLine("\n");
         }
 
         internal class WriteCommand
