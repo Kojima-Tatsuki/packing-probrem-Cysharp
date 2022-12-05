@@ -16,33 +16,44 @@ namespace packing_probrem
     {
         static void Main(string[] args)
         {
-            string readFilePath(int num) => $"\\probrems\\pushRect-{num}.csv";
+            // フォルダ作成
+            if (!Directory.Exists(Environment.CurrentDirectory + "\\probrems"))
+                Directory.CreateDirectory(Environment.CurrentDirectory + "\\probrems");
+            if (!Directory.Exists(Environment.CurrentDirectory + "\\result"))
+                Directory.CreateDirectory(Environment.CurrentDirectory + "\\result");
+
+            var boxCount = int.Parse(Console.ReadLine());
+
+            /*string readFilePath(int num) => $"\\probrems\\pushRect-{num}.csv";
 
             var br = new BoxReader();
             IReadOnlyList<Box> loadedBoxes = new List<Box>();
 
-            var boxCount = 45;
             if (File.Exists(Environment.CurrentDirectory + readFilePath(boxCount)))
                 loadedBoxes = br.ReadBoxesFromFile(Environment.CurrentDirectory + readFilePath(boxCount));
             else
-                loadedBoxes = new BoxGenereter().Create(boxCount, (3, 10), (5, 10));
+                loadedBoxes = new BoxGenereter().Create(boxCount, (5, 17), (7, 15));
 
             br.WriteBoxesToFile(Environment.CurrentDirectory + readFilePath(boxCount), loadedBoxes);
 
             Console.WriteLine("Loaded Boxes");
             for (int i = 0; i < loadedBoxes.Count; i++)
-                Console.WriteLine($"[{i}]: {loadedBoxes[i]}");
+                Console.WriteLine($"[{i}]: {loadedBoxes[i]}");*/
 
             var doer = new Doer();
 
             List<Dictionary<string, int>> lst = new List<Dictionary<string, int>>();
 
             for (int i = 0; i < 10; i++)
-                lst.Add(doer.Do(new BoxGenereter().Create(boxCount, (3, 10), (5, 10))));
+                lst.Add(doer.Do(new BoxGenereter().Create(boxCount, (5, 17), (7, 15))));
+
+
+
+            // 平均値の出力
 
             using var sw = new StreamWriter(
-                path: Environment.CurrentDirectory + $"\\result\\pushed-{loadedBoxes.Count}.txt",
-                append: true);
+                append: true,
+                path: Environment.CurrentDirectory + $"\\result\\pushed-{boxCount}.txt");
 
             sw.WriteLine("Result\n");
 
@@ -90,17 +101,26 @@ namespace packing_probrem
             var searchs = new List<ISearch>()
             {
                 new LocalSearch(bl),
-                new TabuSearch(bl),
-                new RandomPartialNeighborhoodSearch(bl, 0.95f),
-                new RandomPartialNeighborhoodSearch(bl, 0.9f),
-                new RandomPartialNeighborhoodSearch(bl, 0.85f),
-                new RandomPartialNeighborhoodSearch(bl, 0.8f)
+                // new TabuSearch(bl),
+                new RandomPartialNeighborhoodSearch(bl, 1.0f),
+                // new RandomPartialNeighborhoodSearch(bl, 0.9f),
+                // new RandomPartialNeighborhoodSearch(bl, 0.8f),
+                // new RandomPartialNeighborhoodSearch(bl, 0.7f),
+                // new RandomPartialNeighborhoodSearch(bl, 0.6f),
+                new RandomPartialNeighborhoodSearch(bl, 0.5f),
+                new RandomPartialNeighborhoodSearch(bl, 0.4f),
+                new RandomPartialNeighborhoodSearch(bl, 0.3f),
+                new RandomPartialNeighborhoodSearch(bl, 0.2f),
+                new RandomPartialNeighborhoodSearch(bl, 0.1f),
+                new RandomPartialNeighborhoodSearch(bl, 0.05f),
+                new RandomPartialNeighborhoodSearch(bl, 0.01f),
             };
 
             Console.WriteLine("Start Search");
 
             var results = searchs
                 .AsParallel()
+                //.WithDegreeOfParallelism(2)
                 .Select(s => (result: s.Search(loadedBoxes), name: s.ToString()))
                 .ToList();
 
@@ -131,6 +151,11 @@ namespace packing_probrem
             writer.Write(
                 filePath: Environment.CurrentDirectory + $"\\result\\pushed-{loadedBoxes.Count}.txt",
                 constolers: lsrs);
+
+            var bwriter = new BoxReader();
+            bwriter.WriteBoxesToFile(
+                filePath: Environment.CurrentDirectory + $"\\probrems\\pushedRect-{loadedBoxes.Count}.txt",
+                loadedBoxes);
 
             return results.ToDictionary(pair => pair.name, pair => pair.result.Score);
         }

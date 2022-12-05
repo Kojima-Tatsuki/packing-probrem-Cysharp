@@ -7,10 +7,10 @@ using System.Text;
 namespace packing_probrem.domain
 {
     /// <summary>座標を持たない箱</summary>
-    class Box : IEquatable<Box>
+    record Box
     {
-        public int Width { get; }
-        public int Height { get; }
+        public int Width { get; init; }
+        public int Height { get; init; }
 
         public Box(int width, int height)
         {
@@ -19,13 +19,6 @@ namespace packing_probrem.domain
         }
 
         public override string ToString() => $"({Width}, {Height})";
-
-        public bool Equals(Box other)
-        {
-            if (Width == other.Width && Height == other.Height)
-                return true;
-            return false;
-        }
     }
 
     class BoxGenereter
@@ -68,13 +61,17 @@ namespace packing_probrem.domain
 
         public void WriteBoxesToFile(string filePath, IReadOnlyList<Box> boxes)
         {
-            using var sw = new StreamWriter(filePath);
+            StreamWriter sw = new StreamWriter(filePath, true);
 
-            sw.WriteLine(boxes.Count);
+            sw.WriteLine($"Wtite date: {DateTime.Now}");
+            sw.WriteLine($"Box Count: {boxes.Count}");
+
             foreach (var box in boxes)
             {
                 sw.WriteLine($"{box.Width},{box.Height}");
             }
+
+            sw.Close();
         }
     }
 }

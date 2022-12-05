@@ -38,7 +38,7 @@ namespace packing_probrem.Search
 
             int i = 0;
 
-            while (i < 200)
+            while (i < 100)
             {
                 if (changed.score < bestScore)
                 {
@@ -53,7 +53,7 @@ namespace packing_probrem.Search
                 i++;
             }
 
-            Console.WriteLine($"End PRNS, {PartialRatio}");
+            Console.WriteLine($"End PRNS, {PartialRatio}, score:  {bestScore}");
             return new SearchResult(bestScore, bestOrder, scores);
         }
 
@@ -61,7 +61,7 @@ namespace packing_probrem.Search
         private (int score, IReadOnlyList<Box> order) GetNaightborhoodBest(IReadOnlyList<Box> rects)
         {
             var bestResult = -1;
-            var bestOrders = new List<IReadOnlyList<Box>>();
+            var bestOrders = new List<IReadOnlyList<Box>> { rects };
 
             for (int i = 0; i < rects.Count - 2; i++)
             {
@@ -86,6 +86,9 @@ namespace packing_probrem.Search
             }
 
             var resultOrder = bestOrders[Random.Next(0, bestOrders.Count)];
+
+            if (bestResult == -1)
+                return (Algolism.Cal(rects).score, resultOrder);
 
             return (bestResult, resultOrder);
         }

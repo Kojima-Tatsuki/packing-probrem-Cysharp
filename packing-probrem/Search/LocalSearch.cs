@@ -28,7 +28,7 @@ namespace packing_probrem.Search
             var scores = new List<int>();
             scores.Add(bestScore);
 
-            var i = 1;
+            // var i = 1;
 
             while (changed.isInclude)
             {

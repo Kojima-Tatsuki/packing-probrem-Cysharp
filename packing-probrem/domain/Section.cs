@@ -4,7 +4,7 @@ using System.Text;
 
 namespace packing_probrem.domain
 {
-    class Section : Box
+    record Section : Box
     {
         public IReadOnlyList<Point> StablePoints { get; }
 

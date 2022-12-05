@@ -12,9 +12,12 @@ namespace packing_probrem.Search
     {
         private readonly IAlgolism Algolism;
 
+        private readonly Random Random;
+
         public TabuSearch(IAlgolism algolism)
         {
             Algolism = algolism;
+            Random = new Random();
         }
 
         public SearchResult Search(IReadOnlyList<Box> init)
@@ -43,7 +46,7 @@ namespace packing_probrem.Search
                     break;
 
                 bestScore.score = changed.score;
-                bestOrder = changed.orders.First();
+                bestOrder = changed.orders[Random.Next(0, changed.orders.Count)];
 
                 // Console.WriteLine($"[{i}]: score {bestScore.score}, {changed.orders.Count}, current: {currentScoreLoops}");
 
@@ -57,7 +60,7 @@ namespace packing_probrem.Search
             return new SearchResult(bestScore.score, bestOrder, scores);
         }
 
-        private (bool isInclude, int score, IReadOnlyCollection<IReadOnlyList<Box>> orders) IsIncludeMores(
+        private (bool isInclude, int score, IReadOnlyList<IReadOnlyList<Box>> orders) IsIncludeMores(
             IReadOnlyList<Box> rects, 
             IReadOnlyCollection<IReadOnlyList<Box>> tabus)
         {
