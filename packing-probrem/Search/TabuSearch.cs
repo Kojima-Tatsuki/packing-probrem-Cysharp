@@ -78,7 +78,7 @@ namespace packing_probrem.Search
                 {
                     var order = rects.ChangeOrder(i, k);
                     // 並び変えた後の配列がタブーリストと一致しているなら探索しない
-                    if (tabus.GetIndexPairs().Any(pair => pair.Equals(new(i, k))))
+                    if (tabuPairs.Any(pair => pair.Equals(new(i, k))))
                         continue;
 
                     var calResult = Algolism.Cal(order);
