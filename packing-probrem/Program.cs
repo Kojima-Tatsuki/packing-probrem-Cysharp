@@ -40,7 +40,7 @@ namespace packing_probrem
             for (int i = 0; i < loadedBoxes.Count; i++)
                 Console.WriteLine($"[{i}]: {loadedBoxes[i]}");*/
 
-            var doer = new Doer();
+            var doer = new Doer(false);
 
             List<Dictionary<string, int>> lst = new List<Dictionary<string, int>>();
 
@@ -90,6 +90,13 @@ namespace packing_probrem
 
     internal class Doer
     {
+        private bool DrawView { get; init; }
+
+        public Doer(bool drawView)
+        {
+            DrawView = drawView;
+        }
+
         public Dictionary<string, int> Do(IReadOnlyList<Box> loadedBoxes)
         {
             var section = new Section(new Box(24, 16));
@@ -101,19 +108,19 @@ namespace packing_probrem
             var searchs = new List<ISearch>()
             {
                 new LocalSearch(bl),
-                // new TabuSearch(bl),
-                new RandomPartialNeighborhoodSearch(bl, 1.0f),
+                new TabuSearch(bl),
+                // new RandomPartialNeighborhoodSearch(bl, 1.0f),
                 // new RandomPartialNeighborhoodSearch(bl, 0.9f),
                 // new RandomPartialNeighborhoodSearch(bl, 0.8f),
                 // new RandomPartialNeighborhoodSearch(bl, 0.7f),
                 // new RandomPartialNeighborhoodSearch(bl, 0.6f),
-                new RandomPartialNeighborhoodSearch(bl, 0.5f),
+                /*new RandomPartialNeighborhoodSearch(bl, 0.5f),
                 new RandomPartialNeighborhoodSearch(bl, 0.4f),
                 new RandomPartialNeighborhoodSearch(bl, 0.3f),
                 new RandomPartialNeighborhoodSearch(bl, 0.2f),
                 new RandomPartialNeighborhoodSearch(bl, 0.1f),
                 new RandomPartialNeighborhoodSearch(bl, 0.05f),
-                new RandomPartialNeighborhoodSearch(bl, 0.01f),
+                new RandomPartialNeighborhoodSearch(bl, 0.01f),*/
             };
 
             Console.WriteLine("Start Search");
@@ -126,15 +133,18 @@ namespace packing_probrem
 
             // 図形描画
 
-            foreach (var result in results)
+            if (DrawView)
             {
-                var cal = bl.Cal(result.result.Order);
-                var drawer = new SquareDrawer(section.Width, result.result.Score);
+                foreach (var result in results)
+                {
+                    var pushed = bl.GetPushed(result.result.Order);
+                    var drawer = new SquareDrawer(section.Width, result.result.Score);
 
-                foreach (var rect in cal.pushed)
-                    drawer.SetRect(rect);
+                    foreach (var rect in pushed)
+                        drawer.SetRect(rect);
 
-                drawer.DrawAllSquare();
+                    drawer.DrawAllSquare();
+                }
             }
 
             // コンソール出力
@@ -173,7 +183,7 @@ namespace packing_probrem
         {
             Result = result;
             Section = section;
-            Pushed = algolism.Cal(result.Order).pushed;
+            Pushed = algolism.GetPushed(result.Order);
             Points = algolism.GetBLStablePoints(section.StablePoints, Pushed);
             SearchAlgolismName = searchAlgolismName;
 
