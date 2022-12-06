@@ -25,6 +25,9 @@ namespace packing_probrem.Search
             Console.WriteLine("Start Tabu Search");
 
             var tabuList = new List<IReadOnlyList<Box>>() { init };
+            var boxDictionary = init
+                .Select((box, index) => (box, index))
+                .ToDictionary(pair => pair.index, pair => pair);
 
             var bestScore = Algolism.Cal(init);
             var bestOrder = init;
@@ -62,10 +65,12 @@ namespace packing_probrem.Search
 
         private (bool isInclude, int score, IReadOnlyList<IReadOnlyList<Box>> orders) IsIncludeMores(
             IReadOnlyList<Box> rects, 
-            IReadOnlyCollection<IReadOnlyList<Box>> tabus)
+            TabuList tabus)
         {
             var bestResult = Algolism.Cal(rects);
             var bestOrders = new List<IReadOnlyList<Box>>();
+
+            var tabuPairs = tabus.GetIndexPairs();
 
             for (int i = 0; i < rects.Count - 2; i++)
             {
@@ -73,7 +78,7 @@ namespace packing_probrem.Search
                 {
                     var order = rects.ChangeOrder(i, k);
                     // 並び変えた後の配列がタブーリストと一致しているなら探索しない
-                    if (tabus.Any(tabu => tabu.SequenceEqual(order)))
+                    if (tabus.GetIndexPairs().Any(pair => pair.Equals(new(i, k))))
                         continue;
 
                     var calResult = Algolism.Cal(order);
@@ -92,6 +97,34 @@ namespace packing_probrem.Search
             var isChangeable = bestOrders.Count > 0;
 
             return (isChangeable, bestResult.score, bestOrders);
+        }
+
+        private class TabuList
+        {
+            public int Length { get; init; }
+            private Queue<Pair> BoxPairs { get; init; }
+
+            public TabuList(int boxCount)
+            {
+                Length = (int)Math.Sqrt(boxCount); // 平方根を取る
+                BoxPairs = new Queue<Pair>(Length);
+            }
+
+            public void AddTabuList(int a, int b)
+            {
+                Pair pair;
+                if (a < b)
+                    pair = new(a, b);
+                else
+                    pair = new(b, a);
+
+                BoxPairs.Enqueue(pair);
+            }
+
+            /// <summary>first < second を満たす</summary>
+            public IReadOnlyCollection<Pair> GetIndexPairs() => BoxPairs.ToList();
+
+            public record Pair(int First, int Second);
         }
 
         public override string ToString()
