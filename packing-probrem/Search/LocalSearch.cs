@@ -20,7 +20,7 @@ namespace packing_probrem.Search
         {
             Console.WriteLine("Start Local Search");
 
-            var bestScore = Algolism.Cal(init).score;
+            var bestScore = Algolism.Cal(init);
             var bestOrder = init;
 
             var changed = IsIncludeMore(init);
@@ -60,7 +60,7 @@ namespace packing_probrem.Search
                     var order = rects.ChangeOrder(i, k);
                     var calResult = Algolism.Cal(order);
 
-                    if (calResult.score < bestResult.score)
+                    if (calResult < bestResult)
                     {
                         bestOrder = order;
                         bestResult = calResult;
@@ -69,7 +69,7 @@ namespace packing_probrem.Search
                 }
             }
 
-            return (result, bestResult.score, bestOrder);
+            return (result, bestResult, bestOrder);
         }
 
         public override string ToString()

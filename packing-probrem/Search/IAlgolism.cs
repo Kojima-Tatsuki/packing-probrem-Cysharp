@@ -7,7 +7,9 @@ namespace packing_probrem.Search
 {
     interface IAlgolism
     {
-        (int score, IReadOnlyList<Rect> pushed) Cal(IReadOnlyList<Box> rects);
+        int Cal(IReadOnlyList<Box> rects);
+
+        IReadOnlyList<Rect> GetPushed(IReadOnlyList<Box> rects);
     }
 
     class SearchResult

@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Channels;
 using packing_probrem.domain;
 using packing_probrem.Search.Extentions;
+using static packing_probrem.Search.TabuSearch;
 
 namespace packing_probrem.Search
 {
@@ -24,75 +26,154 @@ namespace packing_probrem.Search
         {
             Console.WriteLine("Start Tabu Search");
 
-            var tabuList = new List<IReadOnlyList<Box>>() { init };
+            var tabuList = new TabuList(init.Count);
 
-            var bestScore = Algolism.Cal(init);
-            var bestOrder = init;
+            var tabuBoxes = init.Select((box, index) => new TabuBox(index, box)).ToList();
+            var boxDictionary = tabuBoxes
+                .ToDictionary(pair => pair.Index, pair => pair);
 
-            var changed = IsIncludeMores(init, tabuList);
+            var bestScore = Algolism.Cal(tabuBoxes);
+            var bestOrder = tabuBoxes;
+            var scores = new List<int> { bestScore };
 
-            var scores = new List<int> { bestScore.score };
+            int currentScoreLoops = 0;
 
-            int i = 1, currentScoreLoops = 0;
+            var changed = IsIncludeMores(tabuBoxes, tabuList);
 
-            while (changed.isInclude)
+            while (changed.IsInclude)
             {
                 // スコアの更新
-                if (bestScore.score > changed.score) {
+                if (changed.Score < bestScore) {
                     currentScoreLoops = 0;
-                    scores.Add(changed.score);
+                    bestScore = changed.Score;
+                    scores.Add(changed.Score);
                 }
-                else if (currentScoreLoops >= 200) // スコアの更新から200回の実行で終了
+                else if (100 < currentScoreLoops) // スコアの更新から200回の実行で終了
                     break;
 
-                bestScore.score = changed.score;
-                bestOrder = changed.orders[Random.Next(0, changed.orders.Count)];
+                var index = Random.Next(0, changed.Orders.Count);
 
                 // Console.WriteLine($"[{i}]: score {bestScore.score}, {changed.orders.Count}, current: {currentScoreLoops}");
 
-                tabuList.Add(bestOrder); // タブーリストに追加
-                changed = IsIncludeMores(bestOrder, tabuList);
-                i++;
+                tabuList.AddTabuList(changed.Orders[index].index); // タブーリストに追加
+                changed = IsIncludeMores(changed.Orders[index].Value, tabuList);
                 currentScoreLoops++;
             }
 
             Console.WriteLine("End Tabu Search");
-            return new SearchResult(bestScore.score, bestOrder, scores);
+            return new SearchResult(bestScore, bestOrder, scores);
         }
 
-        private (bool isInclude, int score, IReadOnlyList<IReadOnlyList<Box>> orders) IsIncludeMores(
-            IReadOnlyList<Box> rects, 
-            IReadOnlyCollection<IReadOnlyList<Box>> tabus)
+        private IncludeMoreResult IsIncludeMores(IReadOnlyList<TabuBox> rects, TabuList tabus)
         {
-            var bestResult = Algolism.Cal(rects);
-            var bestOrders = new List<IReadOnlyList<Box>>();
+            var bestScore = Algolism.Cal(rects);
+            var bestOrders = new List<Order>();
 
             for (int i = 0; i < rects.Count - 2; i++)
             {
                 for (int k = i + 1; k < rects.Count - 1; k++)
                 {
-                    var order = rects.ChangeOrder(i, k);
                     // 並び変えた後の配列がタブーリストと一致しているなら探索しない
-                    if (tabus.Any(tabu => tabu.SequenceEqual(order)))
+                    if (tabus.IsTabu(rects[i], rects[k]))
                         continue;
 
-                    var calResult = Algolism.Cal(order);
+                    var order = rects.ChangeOrder(i, k);
+                    var score = Algolism.Cal(order);
+                    var orderModel = new Order(order, new Pair(rects[i].Index, rects[k].Index));
 
-                    if (calResult.score < bestResult.score)
+                    if (score < bestScore)
                     {
                         // Console.WriteLine("より良い解が見つかったよ！！");
-                        bestOrders = new List<IReadOnlyList<Box>> { order };
-                        bestResult = calResult;
+                        bestOrders = new List<Order> { orderModel };
+                        bestScore = score;
                     }
-                    else if(calResult.score == bestResult.score)
-                        bestOrders.Add(order);
+                    else if(score == bestScore)
+                        bestOrders.Add(orderModel);
                 }
             }
 
             var isChangeable = bestOrders.Count > 0;
 
-            return (isChangeable, bestResult.score, bestOrders);
+            return new(isChangeable, bestScore, bestOrders);
         }
+
+        private class IncludeMoreResult
+        {
+            public bool IsInclude { get; init; }
+            public int Score { get; init; }
+            public IReadOnlyList<Order> Orders { get; init; }
+
+            public IncludeMoreResult(bool isIncloude, int score, IReadOnlyList<Order> orders)
+            {
+                IsInclude = isIncloude;
+                Score = score;
+                Orders = orders;
+            }
+        }
+
+        private class TabuList
+        {
+            public int Length { get; init; }
+            private Queue<Pair> BoxPairs { get; init; }
+            private Queue<int> IntQueue { get; init; }
+
+            public TabuList(int boxCount)
+            {
+                Length = (int)Math.Sqrt(boxCount); // 平方根を取る
+                BoxPairs = new Queue<Pair>(Length);
+                IntQueue = new Queue<int>(Length * 2);
+            }
+
+            public void AddTabuList(Pair pair)
+            {
+                if (BoxPairs.Count == Length)
+                {
+                    BoxPairs.Dequeue();
+                    IntQueue.Dequeue();
+                    IntQueue.Dequeue();
+                }
+                BoxPairs.Enqueue(pair);
+                IntQueue.Enqueue(pair.First);
+                IntQueue.Enqueue(pair.Second);
+            }
+
+            /// <summary>first < second を満たす</summary>
+            public IReadOnlyCollection<Pair> GetIndexPairs() => BoxPairs.ToList();
+
+            public bool IsTabu(TabuBox i, TabuBox k) => IntQueue.Any(_ => _ == i.Index || _ == k.Index);
+        }
+
+        private record Pair
+        {
+            public int First { get; init; }
+            public int Second { get; init; }
+
+            public Pair(int a, int b)
+            {
+                if (a < b)
+                {
+                    First = a;
+                    Second = b;
+                }
+                else
+                {
+                    First= b;
+                    Second= a;
+                }
+            }
+        }
+
+        private record TabuBox : Box
+        {
+            public int Index { get;init; }
+
+            public TabuBox(int index, Box original): base(original)
+            {
+                Index= index;
+            }
+        }
+
+        private record Order(IReadOnlyList<TabuBox> Value, Pair index);
 
         public override string ToString()
         {

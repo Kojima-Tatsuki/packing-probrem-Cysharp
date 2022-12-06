@@ -18,7 +18,11 @@ namespace packing_probrem.Search
             UseHeight = useHeight;
         }
 
-        public (int score, IReadOnlyList<Rect> pushed) Cal(IReadOnlyList<Box> boxes)
+        public int Cal(IReadOnlyList<Box> boxes) => Calculate(boxes).score;
+
+        public IReadOnlyList<Rect> GetPushed(IReadOnlyList<Box> boxes) => Calculate(boxes).pushed;
+
+        private (int score, IReadOnlyList<Rect> pushed) Calculate(IReadOnlyList<Box> boxes)
         {
             var pushed = new List<Rect>();
 

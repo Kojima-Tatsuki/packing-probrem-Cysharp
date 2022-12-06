@@ -29,7 +29,7 @@ namespace packing_probrem.Search
         {
             Console.WriteLine($"Start PRNS, {PartialRatio}");
 
-            var bestScore = Algolism.Cal(init).score;
+            var bestScore = Algolism.Cal(init);
             var bestOrder = init;
 
             var scores = new List<int>() { bestScore };
@@ -75,12 +75,12 @@ namespace packing_probrem.Search
                     var order = rects.ChangeOrder(i, k);
                     var calResult = Algolism.Cal(order);
 
-                    if (calResult.score < bestResult || bestResult == -1)
+                    if (calResult < bestResult || bestResult == -1)
                     {
-                        bestResult = calResult.score;
+                        bestResult = calResult;
                         bestOrders = new List<IReadOnlyList<Box>> { order };
                     }
-                    else if (bestResult == calResult.score)
+                    else if (bestResult == calResult)
                         bestOrders.Add(order);
                 }
             }
@@ -88,7 +88,7 @@ namespace packing_probrem.Search
             var resultOrder = bestOrders[Random.Next(0, bestOrders.Count)];
 
             if (bestResult == -1)
-                return (Algolism.Cal(rects).score, resultOrder);
+                return (Algolism.Cal(rects), resultOrder);
 
             return (bestResult, resultOrder);
         }
