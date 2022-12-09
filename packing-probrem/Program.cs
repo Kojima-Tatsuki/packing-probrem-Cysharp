@@ -55,7 +55,7 @@ namespace packing_probrem
                 append: true,
                 path: Environment.CurrentDirectory + $"\\result\\pushed-{boxCount}.txt");
 
-            sw.WriteLine("Result\n");
+            sw.WriteLine($"Result\n{DateTime.Now}\n");
 
             var re = new Dictionary<string, List<int>>();
 
@@ -109,18 +109,20 @@ namespace packing_probrem
             {
                 new LocalSearch(bl),
                 new TabuSearch(bl),
-                // new RandomPartialNeighborhoodSearch(bl, 1.0f),
-                // new RandomPartialNeighborhoodSearch(bl, 0.9f),
-                // new RandomPartialNeighborhoodSearch(bl, 0.8f),
-                // new RandomPartialNeighborhoodSearch(bl, 0.7f),
-                // new RandomPartialNeighborhoodSearch(bl, 0.6f),
-                /*new RandomPartialNeighborhoodSearch(bl, 0.5f),
-                new RandomPartialNeighborhoodSearch(bl, 0.4f),
-                new RandomPartialNeighborhoodSearch(bl, 0.3f),
-                new RandomPartialNeighborhoodSearch(bl, 0.2f),
-                new RandomPartialNeighborhoodSearch(bl, 0.1f),
-                new RandomPartialNeighborhoodSearch(bl, 0.05f),
-                new RandomPartialNeighborhoodSearch(bl, 0.01f),*/
+                new RandomPartialNeighborhoodSearch(bl, 1.0f, RandomPartialNeighborhoodSearch.RatioType.Fix),
+                new RandomPartialNeighborhoodSearch(bl, 0.9f, RandomPartialNeighborhoodSearch.RatioType.Fix),
+                new RandomPartialNeighborhoodSearch(bl, 0.8f, RandomPartialNeighborhoodSearch.RatioType.Fix),
+                new RandomPartialNeighborhoodSearch(bl, 0.7f, RandomPartialNeighborhoodSearch.RatioType.Fix),
+                new RandomPartialNeighborhoodSearch(bl, 0.6f, RandomPartialNeighborhoodSearch.RatioType.Fix),
+                new RandomPartialNeighborhoodSearch(bl, 0.5f, RandomPartialNeighborhoodSearch.RatioType.Fix),
+                new RandomPartialNeighborhoodSearch(bl, 0.4f, RandomPartialNeighborhoodSearch.RatioType.Fix),
+                new RandomPartialNeighborhoodSearch(bl, 0.3f, RandomPartialNeighborhoodSearch.RatioType.Fix),
+                new RandomPartialNeighborhoodSearch(bl, 0.2f, RandomPartialNeighborhoodSearch.RatioType.Fix),
+                new RandomPartialNeighborhoodSearch(bl, 0.1f, RandomPartialNeighborhoodSearch.RatioType.Fix),
+                new RandomPartialNeighborhoodSearch(bl, 0.05f, RandomPartialNeighborhoodSearch.RatioType.Fix),
+                new RandomPartialNeighborhoodSearch(bl, 0.01f, RandomPartialNeighborhoodSearch.RatioType.Fix),
+                new RandomPartialNeighborhoodSearch(bl, 0.3f, RandomPartialNeighborhoodSearch.RatioType.LinerUpdate),
+                new RandomPartialNeighborhoodSearch(bl, 0.3f, RandomPartialNeighborhoodSearch.RatioType.ExponentialUpdate),
             };
 
             Console.WriteLine("Start Search");

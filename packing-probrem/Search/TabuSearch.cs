@@ -36,20 +36,17 @@ namespace packing_probrem.Search
             var bestOrder = tabuBoxes;
             var scores = new List<int> { bestScore };
 
-            int currentScoreLoops = 0;
-
             var changed = IsIncludeMores(tabuBoxes, tabuList);
 
-            while (changed.IsInclude)
+            for (int i = 0; i < 100; i++)
             {
                 // スコアの更新
-                if (changed.Score < bestScore) {
-                    currentScoreLoops = 0;
+                if (changed.Score < bestScore)
+                {
+                    // currentScoreLoops = 0;
                     bestScore = changed.Score;
                     scores.Add(changed.Score);
                 }
-                else if (100 < currentScoreLoops) // スコアの更新から200回の実行で終了
-                    break;
 
                 var index = Random.Next(0, changed.Orders.Count);
 
@@ -57,7 +54,6 @@ namespace packing_probrem.Search
 
                 tabuList.AddTabuList(changed.Orders[index].index); // タブーリストに追加
                 changed = IsIncludeMores(changed.Orders[index].Value, tabuList);
-                currentScoreLoops++;
             }
 
             Console.WriteLine("End Tabu Search");
