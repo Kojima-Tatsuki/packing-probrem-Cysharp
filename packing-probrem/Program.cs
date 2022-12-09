@@ -108,7 +108,7 @@ namespace packing_probrem
             var searchs = new List<ISearch>()
             {
                 new LocalSearch(bl),
-                new TabuSearch(bl),
+                //new TabuSearch(bl),
                 // new RandomPartialNeighborhoodSearch(bl, 1.0f),
                 // new RandomPartialNeighborhoodSearch(bl, 0.9f),
                 // new RandomPartialNeighborhoodSearch(bl, 0.8f),
@@ -184,7 +184,7 @@ namespace packing_probrem
             Result = result;
             Section = section;
             Pushed = algolism.GetPushed(result.Order);
-            Points = algolism.GetBLStablePoints(section.StablePoints, Pushed);
+            Points = algolism.GetBLStablePointsAddNewRect(section.StablePoints, Pushed);
             SearchAlgolismName = searchAlgolismName;
 
             WriteOnConsole();

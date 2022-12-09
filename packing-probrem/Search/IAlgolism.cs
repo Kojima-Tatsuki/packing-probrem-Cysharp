@@ -28,8 +28,20 @@ namespace packing_probrem.Search
 
     interface ISearch
     {
-       SearchResult Search(IReadOnlyList<Box> boxes);
+        SearchResult Search(IReadOnlyList<Box> boxes);
 
         string ToString();
+    }
+
+    interface IMemoryedAlgolism
+    {
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="boxes">今回調べる並び</param>
+        /// <param name="original">類似の並び</param>
+        /// <param name="index">変更の開始点</param>
+        /// <returns></returns>
+        SearchResult Cal(IReadOnlyList<Box> boxes, IReadOnlyList<Rect> original, int index);
     }
 }

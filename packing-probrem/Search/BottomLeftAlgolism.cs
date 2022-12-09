@@ -7,7 +7,7 @@ using packing_probrem.domain.Extentions;
 
 namespace packing_probrem.Search
 {
-    class BottomLeftAlgolism : IAlgolism
+    class BottomLeftAlgolism : IAlgolism, IMemoryedAlgolism
     {
         private Section MotherSection { get; }
         private bool UseHeight { get; }
@@ -26,7 +26,7 @@ namespace packing_probrem.Search
         {
             var pushed = new List<Rect>();
 
-            if (boxes == null ||boxes.Count == 0)
+            if (boxes == null || boxes.Count == 0)
                 return (0, pushed);
 
             var stables = MotherSection.StablePoints;
@@ -35,7 +35,9 @@ namespace packing_probrem.Search
 
             foreach (var box in boxes)
             {
-                stables = GetBLStablePoints(stables, pushed);
+                stables = GetBLStablePointsAddNewRect(stables, pushed);
+
+                var s = GetBLStablePoints(pushed);
 
                 if (stables.Count < 1) // 1つも安定点が無い(もうこれ以上置けるところはない)
                     break;
@@ -68,37 +70,42 @@ namespace packing_probrem.Search
             return (score, pushed);
         }
 
-        internal IReadOnlyList<Point> GetBLStablePoints(IReadOnlyList<Point> stables, IReadOnlyList<Rect> pushedRects)
+        public SearchResult Cal(IReadOnlyList<Box> boxes, IReadOnlyList<Rect> original, int index)
+        {
+            var pushed = original.Where((rect, i) => i < index).ToList();
+
+            var stables = MotherSection.StablePoints;
+
+            for (int i = index; i < boxes.Count; i++)
+            {
+                stables = GetBLStablePointsAddNewRect(stables, pushed);
+            }
+
+            throw new NotImplementedException();
+        }
+
+        private IReadOnlyList<Point> GetBLStablePoints(IReadOnlyList<Rect> rects)
+        {
+            var stables = MotherSection.StablePoints;
+
+            for (int i = 0; i < rects.Count; i++)
+            {
+                var pushed = rects.Where((r, idx) => idx <= i).ToList();
+                stables = GetBLStablePointsAddNewRect(stables, pushed);
+            }
+
+            return stables;
+        }
+
+        internal IReadOnlyList<Point> GetBLStablePointsAddNewRect(IReadOnlyList<Point> stables, IReadOnlyList<Rect> pushedRects)
         {
             if (pushedRects.Count == 0)
                 return stables;
 
             var result = new List<Point>(stables);
 
-            /*for (int i = 0; i < pushedRects.Count; i++)
-            {
-                var pushed = pushedRects[i];
-                result.AddNotDuplication(new Point(pushed.Right, MotherSection.Bottom));
-                result.AddNotDuplication(new Point(MotherSection.Left, pushed.Top));
-
-                for (int j = 0; j < pushedRects.Count; j++)
-                {
-                    var repushed = pushedRects[j];
-
-                    if (repushed == pushed)
-                        continue;
-
-                    if (pushed.Top >= repushed.Top)
-                        result.AddNotDuplication(new Point(pushed.Right, repushed.Top));
-                    if (pushed.Right >= repushed.Right)
-                        result.AddNotDuplication(new Point(repushed.Right, pushed.Top));
-                }
-            }*/
-
             var newRect = pushedRects[pushedRects.Count - 1];
 
-            // result.AddNotDuplication(new Point(newRect.Right, MotherSection.Bottom));
-            // result.AddNotDuplication(new Point(MotherSection.Left, newRect.Top));
             AddNotFilled(result, new Point(newRect.Right, MotherSection.Bottom), pushedRects);
             AddNotFilled(result, new Point(MotherSection.Left, newRect.Top), pushedRects);
 
@@ -107,17 +114,13 @@ namespace packing_probrem.Search
                 var pushed = pushedRects[i];
 
                 if (pushed.Top >= newRect.Top)
-                    //result.AddNotDuplication(new Point(pushed.Right, newRect.Top));
                     AddNotFilled(result, new Point(pushed.Right, newRect.Top), pushedRects);
                 if (pushed.Right >= newRect.Right)
-                    //result.AddNotDuplication(new Point(newRect.Right, pushed.Top));
                     AddNotFilled(result, new Point(newRect.Right, pushed.Top), pushedRects);
 
                 if (newRect.Top >= pushed.Top)
-                    //result.AddNotDuplication(new Point(newRect.Right, pushed.Top));
                     AddNotFilled(result, new Point(newRect.Right, pushed.Top), pushedRects);
                 if (newRect.Right >= pushed.Right)
-                    //result.AddNotDuplication(new Point(pushed.Right, newRect.Top));
                     AddNotFilled(result, new Point(pushed.Right, newRect.Top), pushedRects);
             }
 
@@ -134,22 +137,13 @@ namespace packing_probrem.Search
             return false;
         }
 
-        /*private bool IsFilled(Point point)
-        {
-            return PushedRects
-                .Any(_ => 
-                    _.Left < point.X &&
-                    point.X < _.Right &&
-                    _.Bottom < point.Y &&
-                    point.Y < _.Top);
-        }*/
-
         private List<Point> AddNotFilled(List<Point> list, Point point, IReadOnlyList<Rect> pushed)
         {
             if (!IsFilled(point, pushed))
                 return list.AddNotDuplication(point);
             return list;
         }
+
         private bool IsFilled(Point point, IReadOnlyList<Rect> pushed) => pushed.Any(_ => _.IsOverlap(point));
 
         private int GetMaxHeight(IReadOnlyList<Rect> pushedRects)
