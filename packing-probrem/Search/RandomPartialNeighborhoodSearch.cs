@@ -10,21 +10,22 @@ namespace packing_probrem.Search
     // ランダム部分近傍探索法
     internal class RandomPartialNeighborhoodSearch : ISearch
     {
-        private readonly IAlgolism Algolism;
+        private IAlgolism Algolism { get; init; }
 
-        private readonly float PartialRatio;
-        private readonly float MinPartialRatio;
-        private readonly RatioType RatioPatern;
+        private float PartialRatio { get; init; }
+        private float MinPartialRatio { get; init; }
+        private RatioType RatioPatern { get; init; }
 
-        private readonly Random Random;
+        private Random Random { get; init; }
 
-        private readonly int IterMax;
+        private int IterMax { get; init; }
 
         /// <param name="partial">0 ~ 1</param>
         public RandomPartialNeighborhoodSearch(IAlgolism algolism, float partial, RatioType type)
         {
             Algolism = algolism;
             PartialRatio = partial;
+            MinPartialRatio = 0.005f;
             RatioPatern = type;
 
             IterMax = 100;
@@ -94,10 +95,10 @@ namespace packing_probrem.Search
                 }
             }
 
-            var resultOrder = bestOrders[Random.Next(0, bestOrders.Count)];
-
             if (bestResult == -1)
-                return (Algolism.Cal(rects), resultOrder);
+                return (Algolism.Cal(rects), rects);
+
+            var resultOrder = bestOrders[Random.Next(0, bestOrders.Count)];
 
             return (bestResult, resultOrder);
         }

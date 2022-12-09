@@ -41,7 +41,7 @@ namespace packing_probrem.Search
                 changed = IsIncludeMore(bestOrder);
             }
 
-            Console.WriteLine("End Local Search");
+            Console.WriteLine($"End Local Search, score: {bestScore}");
             return new SearchResult(bestScore, bestOrder, scores);
         }
 
