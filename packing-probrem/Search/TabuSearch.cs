@@ -36,52 +36,48 @@ namespace packing_probrem.Search
             var bestOrder = tabuBoxes;
             var scores = new List<int> { bestScore };
 
-            int currentScoreLoops = 0;
+            var changed = IsIncludeMores(new Order(tabuBoxes, new(0, 0)), tabuList);
 
-            var changed = IsIncludeMores(tabuBoxes, tabuList);
-
-            while (changed.IsInclude)
+            for (int i = 0; i < 100; i++)
             {
                 // スコアの更新
-                if (changed.Score < bestScore) {
-                    currentScoreLoops = 0;
+                if (changed.Score < bestScore)
+                {
+                    // currentScoreLoops = 0;
                     bestScore = changed.Score;
                     scores.Add(changed.Score);
                 }
-                else if (100 < currentScoreLoops) // スコアの更新から200回の実行で終了
-                    break;
 
                 var index = Random.Next(0, changed.Orders.Count);
 
                 // Console.WriteLine($"[{i}]: score {bestScore.score}, {changed.orders.Count}, current: {currentScoreLoops}");
 
                 tabuList.AddTabuList(changed.Orders[index].index); // タブーリストに追加
-                changed = IsIncludeMores(changed.Orders[index].Value, tabuList);
-                currentScoreLoops++;
+                changed = IsIncludeMores(changed.Orders[index], tabuList);
             }
 
-            Console.WriteLine("End Tabu Search");
+            Console.WriteLine($"End Tabu Search, score: {bestScore}");
             return new SearchResult(bestScore, bestOrder, scores);
         }
 
-        private IncludeMoreResult IsIncludeMores(IReadOnlyList<TabuBox> rects, TabuList tabus)
+        private IncludeMoreResult IsIncludeMores(Order init, TabuList tabus)
         {
-            var bestScore = Algolism.Cal(rects);
-            var bestOrders = new List<Order>();
+            var bestScore = -1;
+            var bestOrders = new List<Order> { init };
 
-            for (int i = 0; i < rects.Count - 2; i++)
+            for (int i = 0; i < init.Value.Count - 2; i++)
             {
-                for (int k = i + 1; k < rects.Count - 1; k++)
+                for (int k = i + 1; k < init.Value.Count - 1; k++)
                 {
                     // 並び変えた後の配列がタブーリストと一致しているなら探索しない
-                    if (tabus.IsTabu(rects[i], rects[k]))
+                    if (tabus.IsTabu(init.Value[i], init.Value[k]))
                         continue;
 
-                    var order = rects.ChangeOrder(i, k);
+                    var order = init.Value.ChangeOrder(i, k);
                     var score = Algolism.Cal(order);
-                    var orderModel = new Order(order, new Pair(rects[i].Index, rects[k].Index));
+                    var orderModel = new Order(order, new Pair(init.Value[i].Index, init.Value[k].Index));
 
-                    if (score < bestScore)
+                    if (score < bestScore || bestScore == -1)
                     {
                         // Console.WriteLine("より良い解が見つかったよ！！");
                         bestOrders = new List<Order> { orderModel };
@@ -92,7 +88,7 @@ namespace packing_probrem.Search
                 }
             }
 
-            var isChangeable = bestOrders.Count > 0;
+            var isChangeable = bestScore != -1;
 
             return new(isChangeable, bestScore, bestOrders);
         }

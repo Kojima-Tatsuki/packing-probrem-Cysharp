@@ -10,17 +10,25 @@ namespace packing_probrem.Search
     // ランダム部分近傍探索法
     internal class RandomPartialNeighborhoodSearch : ISearch
     {
-        private readonly IAlgolism Algolism;
+        private IAlgolism Algolism { get; init; }
 
-        private readonly float PartialRatio;
+        private float PartialRatio { get; init; }
+        private float MinPartialRatio { get; init; }
+        private RatioType RatioPatern { get; init; }
 
-        private readonly Random Random;
+        private Random Random { get; init; }
+
+        private int IterMax { get; init; }
 
         /// <param name="partial">0 ~ 1</param>
-        public RandomPartialNeighborhoodSearch(IAlgolism algolism, float partial)
+        public RandomPartialNeighborhoodSearch(IAlgolism algolism, float partial, RatioType type)
         {
             Algolism = algolism;
             PartialRatio = partial;
+            MinPartialRatio = 0.005f;
+            RatioPatern = type;
+
+            IterMax = 100;
 
             Random = new Random();
         }
@@ -34,23 +42,19 @@ namespace packing_probrem.Search
 
             var scores = new List<int>() { bestScore };
 
-            var changed = GetNaightborhoodBest(init);
+            var changed = GetNaightborhoodBest(init, 0);
 
-            int i = 0;
-
-            while (i < 100)
+            for (int i = 1; i < IterMax; i++)
             {
                 if (changed.score < bestScore)
                 {
                     bestScore = changed.score;
                     bestOrder = changed.order;
                     scores.Add(bestScore);
-                    i = 0;
                 }
 
                 //Console.WriteLine($"[{i}]: current score {bestScore}");
-                changed = GetNaightborhoodBest(changed.order);
-                i++;
+                changed = GetNaightborhoodBest(changed.order, i);
             }
 
             Console.WriteLine($"End PRNS, {PartialRatio}, score:  {bestScore}");
@@ -58,7 +62,7 @@ namespace packing_probrem.Search
         }
 
         /// <summary>部分近傍内で最も良い結果を返す</summary>
-        private (int score, IReadOnlyList<Box> order) GetNaightborhoodBest(IReadOnlyList<Box> rects)
+        private (int score, IReadOnlyList<Box> order) GetNaightborhoodBest(IReadOnlyList<Box> rects, int itr)
         {
             var bestResult = -1;
             var bestOrders = new List<IReadOnlyList<Box>> { rects };
@@ -67,9 +71,15 @@ namespace packing_probrem.Search
             {
                 for (int k = i + 1; k < rects.Count - 1; k++)
                 {
-                    var rait = (float)Random.NextDouble();
+                    float ratio = RatioPatern switch
+                    {
+                        RatioType.Fix => (float)Random.NextDouble(),
+                        RatioType.LinerUpdate => i / IterMax * (PartialRatio - MinPartialRatio) + MinPartialRatio,
+                        RatioType.ExponentialUpdate => MinPartialRatio * MathF.Pow(PartialRatio / MinPartialRatio, i / IterMax),
+                        _ => (float)Random.NextDouble()
+                    };
 
-                    if (PartialRatio <= rait)
+                    if (PartialRatio <= ratio)
                         continue;
 
                     var order = rects.ChangeOrder(i, k);
@@ -85,17 +95,32 @@ namespace packing_probrem.Search
                 }
             }
 
-            var resultOrder = bestOrders[Random.Next(0, bestOrders.Count)];
-
             if (bestResult == -1)
-                return (Algolism.Cal(rects), resultOrder);
+                return (Algolism.Cal(rects), rects);
+
+            var resultOrder = bestOrders[Random.Next(0, bestOrders.Count)];
 
             return (bestResult, resultOrder);
         }
 
         public override string ToString()
         {
-            return $"RandomPartialNeighborhoodSearch {PartialRatio}";
+            var type = RatioPatern switch
+            {
+                RatioType.Fix => "Fix",
+                RatioType.LinerUpdate => "Liner",
+                RatioType.ExponentialUpdate => "Exp",
+                _ => "Fix"
+            };
+
+            return $"RandomPartialNeighborhoodSearch {PartialRatio} {type}";
+        }
+
+        public enum RatioType
+        {
+            Fix, // 固定
+            LinerUpdate, // 線形
+            ExponentialUpdate, // 指数
         }
     }
 }
