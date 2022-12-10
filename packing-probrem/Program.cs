@@ -40,14 +40,12 @@ namespace packing_probrem
             for (int i = 0; i < loadedBoxes.Count; i++)
                 Console.WriteLine($"[{i}]: {loadedBoxes[i]}");*/
 
-            var doer = new Doer(false);
+            var doer = new Doer(false, new Section(new(33, 16)));
 
             List<Dictionary<string, int>> lst = new List<Dictionary<string, int>>();
 
             for (int i = 0; i < 10; i++)
-                lst.Add(doer.Do(new BoxGenereter().Create(boxCount, (5, 17), (7, 15))));
-
-
+                lst.Add(doer.Do(new BoxGenereter().Create(boxCount, (6, 18), (8, 16))));
 
             // 平均値の出力
 
@@ -92,35 +90,36 @@ namespace packing_probrem
     {
         private bool DrawView { get; init; }
 
-        public Doer(bool drawView)
+        private Section Section { get; init; }
+
+        public Doer(bool drawView, Section section)
         {
             DrawView = drawView;
+            Section = section;
         }
 
         public Dictionary<string, int> Do(IReadOnlyList<Box> loadedBoxes)
         {
-            var section = new Section(new Box(24, 16));
+            Console.WriteLine($"Section {Section}");
 
-            Console.WriteLine($"Section {section}");
-
-            var bl = new BottomLeftAlgolism(section, false);
+            var bl = new BottomLeftAlgolism(Section, false);
 
             var searchs = new List<ISearch>()
             {
                 new LocalSearch(bl),
                 new TabuSearch(bl),
-                /*new RandomPartialNeighborhoodSearch(bl, 1.0f, RandomPartialNeighborhoodSearch.RatioType.Fix),
-                new RandomPartialNeighborhoodSearch(bl, 0.9f, RandomPartialNeighborhoodSearch.RatioType.Fix),
-                new RandomPartialNeighborhoodSearch(bl, 0.8f, RandomPartialNeighborhoodSearch.RatioType.Fix),
-                new RandomPartialNeighborhoodSearch(bl, 0.7f, RandomPartialNeighborhoodSearch.RatioType.Fix),
-                new RandomPartialNeighborhoodSearch(bl, 0.6f, RandomPartialNeighborhoodSearch.RatioType.Fix),
+                new RandomPartialNeighborhoodSearch(bl, 1.0f, RandomPartialNeighborhoodSearch.RatioType.Fix),
+                //new RandomPartialNeighborhoodSearch(bl, 0.9f, RandomPartialNeighborhoodSearch.RatioType.Fix),
+                //new RandomPartialNeighborhoodSearch(bl, 0.8f, RandomPartialNeighborhoodSearch.RatioType.Fix),
+                //new RandomPartialNeighborhoodSearch(bl, 0.7f, RandomPartialNeighborhoodSearch.RatioType.Fix),
+                //new RandomPartialNeighborhoodSearch(bl, 0.6f, RandomPartialNeighborhoodSearch.RatioType.Fix),
                 new RandomPartialNeighborhoodSearch(bl, 0.5f, RandomPartialNeighborhoodSearch.RatioType.Fix),
-                new RandomPartialNeighborhoodSearch(bl, 0.4f, RandomPartialNeighborhoodSearch.RatioType.Fix),
+                //new RandomPartialNeighborhoodSearch(bl, 0.4f, RandomPartialNeighborhoodSearch.RatioType.Fix),
                 new RandomPartialNeighborhoodSearch(bl, 0.3f, RandomPartialNeighborhoodSearch.RatioType.Fix),
                 new RandomPartialNeighborhoodSearch(bl, 0.2f, RandomPartialNeighborhoodSearch.RatioType.Fix),
                 new RandomPartialNeighborhoodSearch(bl, 0.1f, RandomPartialNeighborhoodSearch.RatioType.Fix),
                 new RandomPartialNeighborhoodSearch(bl, 0.05f, RandomPartialNeighborhoodSearch.RatioType.Fix),
-                new RandomPartialNeighborhoodSearch(bl, 0.01f, RandomPartialNeighborhoodSearch.RatioType.Fix),*/
+                new RandomPartialNeighborhoodSearch(bl, 0.01f, RandomPartialNeighborhoodSearch.RatioType.Fix),
                 new RandomPartialNeighborhoodSearch(bl, 0.3f, RandomPartialNeighborhoodSearch.RatioType.LinerUpdate),
                 new RandomPartialNeighborhoodSearch(bl, 0.3f, RandomPartialNeighborhoodSearch.RatioType.ExponentialUpdate),
             };
@@ -140,7 +139,7 @@ namespace packing_probrem
                 foreach (var result in results)
                 {
                     var pushed = bl.GetPushed(result.result.Order);
-                    var drawer = new SquareDrawer(section.Width, result.result.Score);
+                    var drawer = new SquareDrawer(Section.Width, result.result.Score);
 
                     foreach (var rect in pushed)
                         drawer.SetRect(rect);
@@ -154,7 +153,7 @@ namespace packing_probrem
             Console.WriteLine("\nEnd Calculate");
 
             var lsrs = results
-                .Select(res => new ResultConstoler(res.result, bl, section, res.name))
+                .Select(res => new ResultConstoler(res.result, bl, Section, res.name))
                 .ToList();
 
             // ファイル書き込み
