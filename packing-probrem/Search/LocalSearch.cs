@@ -18,8 +18,6 @@ namespace packing_probrem.Search
 
         public SearchResult Search(IReadOnlyList<Box> init)
         {
-            Console.WriteLine("Start Local Search");
-
             var bestScore = Algolism.Cal(init);
             var bestOrder = init;
 
@@ -40,8 +38,6 @@ namespace packing_probrem.Search
 
                 changed = IsIncludeMore(bestOrder);
             }
-
-            Console.WriteLine($"End Local Search, score: {bestScore}");
             return new SearchResult(bestScore, bestOrder, scores);
         }
 

@@ -40,7 +40,10 @@ namespace packing_probrem
             for (int i = 0; i < loadedBoxes.Count; i++)
                 Console.WriteLine($"[{i}]: {loadedBoxes[i]}");*/
 
-            var doer = new Doer(false, new Section(new(33, 16)));
+            var section = new Section(new(33, 16));
+            Console.WriteLine($"Section {section}");
+
+            var doer = new Doer(false, section);
 
             const int LoopCount = 10;
 
@@ -49,8 +52,9 @@ namespace packing_probrem
             for (int i = 0; i < LoopCount; i++)
                 lst.Add(new Dictionary<string, int>());
 
-            lst = lst.AsParallel()
-                .Select(l => doer.Do(new BoxGenereter().Create(boxCount, (6, 18), (8, 16))))
+            lst = lst//.AsParallel()
+                .Select((l, i) => (l, i))
+                .Select(tuple => doer.Do(new BoxGenereter().Create(boxCount, (6, 18), (8, 16)), tuple.i))
                 .ToList();
 
             // 平均値の出力
@@ -104,10 +108,8 @@ namespace packing_probrem
             Section = section;
         }
 
-        public Dictionary<string, int> Do(IReadOnlyList<Box> loadedBoxes)
+        public Dictionary<string, int> Do(IReadOnlyList<Box> loadedBoxes, int index = -1)
         {
-            Console.WriteLine($"Section {Section}");
-
             var bl = new BottomLeftAlgolism(Section, false);
 
             var searchs = new List<ISearch>()
@@ -130,12 +132,27 @@ namespace packing_probrem
                 new RandomPartialNeighborhoodSearch(bl, 0.3f, RandomPartialNeighborhoodSearch.RatioType.ExponentialUpdate),
             };
 
-            Console.WriteLine("Start Search");
+            if (index != -1)
+                Console.WriteLine($"\n[{index}] == Start Search ==");
+            else Console.WriteLine($"\n == Start Search ==");
 
             var results = searchs
                 .AsParallel()
                 //.WithDegreeOfParallelism(2)
-                .Select(s => (result: s.Search(loadedBoxes), name: s.ToString()))
+                .Select(s =>
+                {
+                    if (index != -1)
+                        Console.WriteLine($"[{index}] Start {s.ToString()}");
+                    else Console.WriteLine($"Start {s.ToString()}");
+
+                    var result = (result: s.Search(loadedBoxes), name: s.ToString());
+
+                    if (index != -1)
+                        Console.WriteLine($"[{index}] End {result.name}, score: {result.result.Score}");
+                    else Console.WriteLine($"End {result.name}, score: {result.result.Score}");
+
+                    return result;
+                })
                 .ToList();
 
             // 図形描画
@@ -156,7 +173,9 @@ namespace packing_probrem
 
             // コンソール出力
 
-            Console.WriteLine("\nEnd Calculate");
+            if (index != -1)
+                Console.WriteLine($"[{index}] == End Calculate ==\n");
+            else Console.WriteLine($" == End Calculate ==\n");
 
             var lsrs = results
                 .Select(res => new ResultConstoler(res.result, bl, Section, res.name))
@@ -199,7 +218,7 @@ namespace packing_probrem
 
         private void WriteOnConsole()
         {
-            Console.WriteLine($"Score: {Result.Score}");
+            Console.WriteLine($"{SearchAlgolismName}, Score: {Result.Score}");
             for (int i = 0; i < Result.Scores.Count; i++)
                 Console.WriteLine($"[{i}]: {Result.Scores[i]}");
             /*

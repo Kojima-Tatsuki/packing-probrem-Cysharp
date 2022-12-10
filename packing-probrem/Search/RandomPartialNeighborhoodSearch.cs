@@ -35,8 +35,6 @@ namespace packing_probrem.Search
 
         public SearchResult Search(IReadOnlyList<Box> init)
         {
-            Console.WriteLine($"Start PRNS, {PartialRatio}");
-
             var bestScore = Algolism.Cal(init);
             var bestOrder = init;
 
@@ -57,7 +55,6 @@ namespace packing_probrem.Search
                 changed = GetNaightborhoodBest(changed.order, i);
             }
 
-            Console.WriteLine($"End PRNS, {PartialRatio}, score:  {bestScore}");
             return new SearchResult(bestScore, bestOrder, scores);
         }
 
@@ -113,7 +110,7 @@ namespace packing_probrem.Search
                 _ => "Fix"
             };
 
-            return $"RandomPartialNeighborhoodSearch {PartialRatio} {type}";
+            return $"RPNS {PartialRatio} {type}";
         }
 
         public enum RatioType

@@ -24,8 +24,6 @@ namespace packing_probrem.Search
 
         public SearchResult Search(IReadOnlyList<Box> init)
         {
-            Console.WriteLine("Start Tabu Search");
-
             var tabuList = new TabuList(init.Count);
 
             var tabuBoxes = init.Select((box, index) => new TabuBox(index, box)).ToList();
@@ -56,7 +54,6 @@ namespace packing_probrem.Search
                 changed = IsIncludeMores(changed.Orders[index], tabuList);
             }
 
-            Console.WriteLine($"End Tabu Search, score: {bestScore}");
             return new SearchResult(bestScore, bestOrder, scores);
         }
 
