@@ -42,10 +42,16 @@ namespace packing_probrem
 
             var doer = new Doer(false, new Section(new(33, 16)));
 
-            List<Dictionary<string, int>> lst = new List<Dictionary<string, int>>();
+            const int LoopCount = 10;
 
-            for (int i = 0; i < 10; i++)
-                lst.Add(doer.Do(new BoxGenereter().Create(boxCount, (6, 18), (8, 16))));
+            List<Dictionary<string, int>> lst = new List<Dictionary<string, int>>(LoopCount);
+
+            for (int i = 0; i < LoopCount; i++)
+                lst.Add(new Dictionary<string, int>());
+
+            lst = lst.AsParallel()
+                .Select(l => doer.Do(new BoxGenereter().Create(boxCount, (6, 18), (8, 16))))
+                .ToList();
 
             // 平均値の出力
 
