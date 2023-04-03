@@ -28,7 +28,7 @@ namespace packing_probrem.Search
 
     interface ISearch
     {
-       SearchResult Search(IReadOnlyList<Box> boxes);
+        SearchResult Search(IReadOnlyList<Box> boxes, TimeSpan? timeSpan = null);
 
         string ToString();
     }

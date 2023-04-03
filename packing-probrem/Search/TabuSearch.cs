@@ -16,15 +16,22 @@ namespace packing_probrem.Search
 
         private readonly Random Random;
 
+        private int IterMax { get; init; }
+        private int TimeIterMax { get; init; }
+
         public TabuSearch(IAlgolism algolism)
         {
             Algolism = algolism;
             Random = new Random();
+
+            IterMax = 100;
+            TimeIterMax = 100000;
         }
 
-        public SearchResult Search(IReadOnlyList<Box> init)
+        public SearchResult Search(IReadOnlyList<Box> init, TimeSpan? timeSpan)
         {
             var tabuList = new TabuList(init.Count);
+            var maxItr = timeSpan == null ? IterMax : TimeIterMax;
 
             var tabuBoxes = init.Select((box, index) => new TabuBox(index, box)).ToList();
             var boxDictionary = tabuBoxes
@@ -33,10 +40,12 @@ namespace packing_probrem.Search
             var bestScore = Algolism.Cal(tabuBoxes);
             var bestOrder = tabuBoxes;
             var scores = new List<int> { bestScore };
+            var startTime = DateTime.Now;
 
             var changed = IsIncludeMores(new Order(tabuBoxes, new(0, 0)), tabuList);
 
-            for (int i = 0; i < 100; i++)
+            for (int i = 0; i < maxItr && 
+                timeSpan == null? true: DateTime.Now.Subtract(startTime) < timeSpan; i++)
             {
                 // スコアの更新
                 if (changed.Score < bestScore)

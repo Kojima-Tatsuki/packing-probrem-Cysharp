@@ -16,25 +16,21 @@ namespace packing_probrem.Search
             Algolism = algolism;
         }
 
-        public SearchResult Search(IReadOnlyList<Box> init)
+        public SearchResult Search(IReadOnlyList<Box> init, TimeSpan? timeSpan)
         {
             var bestScore = Algolism.Cal(init);
             var bestOrder = init;
+            var startTime = DateTime.Now;
 
             var changed = IsIncludeMore(init);
 
-            var scores = new List<int>();
-            scores.Add(bestScore);
+            var scores = new List<int> { bestScore };
 
-            // var i = 1;
-
-            while (changed.isInclude)
+            while (changed.isInclude && timeSpan == null? true: DateTime.Now.Subtract(startTime) < timeSpan)
             {
                 bestScore = changed.score;
                 bestOrder = changed.order;
                 scores.Add(changed.score);
-
-                //Console.WriteLine($"[{i}]: score {bestScore}");
 
                 changed = IsIncludeMore(bestOrder);
             }

@@ -52,7 +52,7 @@ namespace packing_probrem
             for (int i = 0; i < LoopCount; i++)
                 lst.Add(new Dictionary<string, int>());
 
-            lst = lst//.AsParallel()
+            lst = lst.AsParallel()
                 .Select((l, i) => (l, i))
                 .Select(tuple => doer.Do(new BoxGenereter().Create(boxCount, (6, 18), (8, 16)), tuple.i))
                 .ToList();
@@ -102,10 +102,13 @@ namespace packing_probrem
 
         private Section Section { get; init; }
 
-        public Doer(bool drawView, Section section)
+        private TimeSpan? Span { get; init; }
+
+        public Doer(bool drawView, Section section, TimeSpan? timeSpan = null)
         {
             DrawView = drawView;
             Section = section;
+            Span = timeSpan;
         }
 
         public Dictionary<string, int> Do(IReadOnlyList<Box> loadedBoxes, int index = -1)
@@ -121,22 +124,36 @@ namespace packing_probrem
                 //new RandomPartialNeighborhoodSearch(bl, 0.8f, RandomPartialNeighborhoodSearch.RatioType.Fix),
                 //new RandomPartialNeighborhoodSearch(bl, 0.7f, RandomPartialNeighborhoodSearch.RatioType.Fix),
                 //new RandomPartialNeighborhoodSearch(bl, 0.6f, RandomPartialNeighborhoodSearch.RatioType.Fix),
-                new RandomPartialNeighborhoodSearch(bl, 0.5f, RandomPartialNeighborhoodSearch.RatioType.Fix),
+                //new RandomPartialNeighborhoodSearch(bl, 0.5f, RandomPartialNeighborhoodSearch.RatioType.Fix),
                 //new RandomPartialNeighborhoodSearch(bl, 0.4f, RandomPartialNeighborhoodSearch.RatioType.Fix),
                 new RandomPartialNeighborhoodSearch(bl, 0.3f, RandomPartialNeighborhoodSearch.RatioType.Fix),
                 new RandomPartialNeighborhoodSearch(bl, 0.2f, RandomPartialNeighborhoodSearch.RatioType.Fix),
-                new RandomPartialNeighborhoodSearch(bl, 0.1f, RandomPartialNeighborhoodSearch.RatioType.Fix),
-                new RandomPartialNeighborhoodSearch(bl, 0.05f, RandomPartialNeighborhoodSearch.RatioType.Fix),
-                new RandomPartialNeighborhoodSearch(bl, 0.01f, RandomPartialNeighborhoodSearch.RatioType.Fix),
+                //new RandomPartialNeighborhoodSearch(bl, 0.1f, RandomPartialNeighborhoodSearch.RatioType.Fix),
+                //new RandomPartialNeighborhoodSearch(bl, 0.05f, RandomPartialNeighborhoodSearch.RatioType.Fix),
+                //new RandomPartialNeighborhoodSearch(bl, 0.01f, RandomPartialNeighborhoodSearch.RatioType.Fix),
                 new RandomPartialNeighborhoodSearch(bl, 0.3f, RandomPartialNeighborhoodSearch.RatioType.LinerUpdate),
+                new RandomPartialNeighborhoodSearch(bl, 0.2f, RandomPartialNeighborhoodSearch.RatioType.LinerUpdate),
+                new RandomPartialNeighborhoodSearch(bl, 0.1f, RandomPartialNeighborhoodSearch.RatioType.LinerUpdate),
+                new RandomPartialNeighborhoodSearch(bl, 0.05f, RandomPartialNeighborhoodSearch.RatioType.LinerUpdate),
+                new RandomPartialNeighborhoodSearch(bl, 0.01f, RandomPartialNeighborhoodSearch.RatioType.LinerUpdate),
+                new RandomPartialNeighborhoodSearch(bl, 0.005f, RandomPartialNeighborhoodSearch.RatioType.LinerUpdate),
                 new RandomPartialNeighborhoodSearch(bl, 0.3f, RandomPartialNeighborhoodSearch.RatioType.ExponentialUpdate),
+                new RandomPartialNeighborhoodSearch(bl, 0.2f, RandomPartialNeighborhoodSearch.RatioType.ExponentialUpdate),
+                new RandomPartialNeighborhoodSearch(bl, 0.1f, RandomPartialNeighborhoodSearch.RatioType.ExponentialUpdate),
+                new RandomPartialNeighborhoodSearch(bl, 0.05f, RandomPartialNeighborhoodSearch.RatioType.ExponentialUpdate),
+                new RandomPartialNeighborhoodSearch(bl, 0.01f, RandomPartialNeighborhoodSearch.RatioType.ExponentialUpdate),
+                new RandomPartialNeighborhoodSearch(bl, 0.005f, RandomPartialNeighborhoodSearch.RatioType.ExponentialUpdate),
             };
 
             if (index != -1)
                 Console.WriteLine($"\n[{index}] == Start Search ==");
             else Console.WriteLine($"\n == Start Search ==");
 
-            var results = searchs
+            List<(SearchResult result, string name)> results;
+
+            var startDate = DateTime.Now;
+
+            results = searchs
                 .AsParallel()
                 //.WithDegreeOfParallelism(2)
                 .Select(s =>
@@ -145,7 +162,7 @@ namespace packing_probrem
                         Console.WriteLine($"[{index}] Start {s.ToString()}");
                     else Console.WriteLine($"Start {s.ToString()}");
 
-                    var result = (result: s.Search(loadedBoxes), name: s.ToString());
+                    var result = (result: s.Search(loadedBoxes, TimeSpan.FromMinutes(90)), name: s.ToString());
 
                     if (index != -1)
                         Console.WriteLine($"[{index}] End {result.name}, score: {result.result.Score}");
@@ -186,6 +203,7 @@ namespace packing_probrem
             var writer = new ResultWriter();
             writer.Write(
                 filePath: Environment.CurrentDirectory + $"\\result\\pushed-{loadedBoxes.Count}.txt",
+                startDate: startDate,
                 constolers: lsrs);
 
             var bwriter = new BoxReader();
@@ -241,7 +259,7 @@ namespace packing_probrem
                 append: true,
                 encoding: Encoding.UTF8);
             sw.WriteLine($"Wtite date: {DateTime.Now}");
-
+            sw.WriteLine($"Start date: {command.StartDate}");
             sw.WriteLine($"Section: {command.MotherSection}");
             sw.WriteLine($"Put Boxes, count: {command.PutBox.Count}");
             for (int i = 0; i < command.PutBox.Count; i++)
@@ -261,10 +279,11 @@ namespace packing_probrem
             Console.WriteLine("\n");
         }
 
-        public void Write(string filePath, ResultConstoler constoler)
+        public void Write(string filePath, DateTime startDate, ResultConstoler constoler)
         {
             var command = new WriteCommand(
                 filePath,
+                startDate,
                 constoler.Result.Score,
                 constoler.Section,
                 constoler.Result.Order,
@@ -274,14 +293,14 @@ namespace packing_probrem
             Write(command);
         }
 
-        public void Write(string filePath, IReadOnlyList<ResultConstoler> constolers)
+        public void Write(string filePath, DateTime startDate, IReadOnlyList<ResultConstoler> constolers)
         {
             using var sw = new StreamWriter(filePath, append: true, encoding: Encoding.UTF8);
 
             sw.WriteLine($"Wtite date: {DateTime.Now}");
 
             var def = constolers.FirstOrDefault();
-
+            sw.WriteLine($"Start date: {startDate}");
             sw.WriteLine($"Section: {def.Section}");
             sw.WriteLine($"Put Boxes, count: {def.Result.Order.Count}");
             for (int i = 0; i < def.Result.Order.Count; i++)
@@ -307,6 +326,7 @@ namespace packing_probrem
         internal class WriteCommand
         {
             public string filePath { get; }
+            public DateTime StartDate { get; }
             public int Score { get; }
             public Section MotherSection { get; }
             public IReadOnlyList<Box> PutBox { get; }
@@ -314,9 +334,10 @@ namespace packing_probrem
             public IReadOnlyList<Rect> PushedRects { get; }
             public IReadOnlyList<domain.Point> BLStable { get; }
 
-            internal WriteCommand(string path, int score, Section section, IReadOnlyList<Box> boxes, IReadOnlyList<int> scores, IReadOnlyList<Rect> rects, IReadOnlyList<domain.Point> bls) 
+            internal WriteCommand(string path, DateTime startDate, int score, Section section, IReadOnlyList<Box> boxes, IReadOnlyList<int> scores, IReadOnlyList<Rect> rects, IReadOnlyList<domain.Point> bls) 
             {
                 filePath = path;
+                StartDate = startDate;
                 Score = score;
                 MotherSection = section;
                 PutBox = boxes;

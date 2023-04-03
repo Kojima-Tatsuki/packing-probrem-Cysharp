@@ -19,6 +19,7 @@ namespace packing_probrem.Search
         private Random Random { get; init; }
 
         private int IterMax { get; init; }
+        private int TimeIterMax { get; init; }
 
         /// <param name="partial">0 ~ 1</param>
         public RandomPartialNeighborhoodSearch(IAlgolism algolism, float partial, RatioType type)
@@ -29,20 +30,25 @@ namespace packing_probrem.Search
             RatioPatern = type;
 
             IterMax = 100;
+            TimeIterMax = 100000;
 
             Random = new Random();
         }
 
-        public SearchResult Search(IReadOnlyList<Box> init)
+        public SearchResult Search(IReadOnlyList<Box> init, TimeSpan? timeSpan)
         {
             var bestScore = Algolism.Cal(init);
             var bestOrder = init;
 
             var scores = new List<int>() { bestScore };
+            var startTime = DateTime.Now;
 
-            var changed = GetNaightborhoodBest(init, 0);
+            var itrMax = timeSpan == null ? IterMax : TimeIterMax;
+            var changed = GetNaightborhoodBest(init, 0, itrMax);
 
-            for (int i = 1; i < IterMax; i++)
+            for (int i = 1; 
+                i < itrMax && 
+                timeSpan == null? true: DateTime.Now.Subtract(startTime) < timeSpan; i++)
             {
                 if (changed.score < bestScore)
                 {
@@ -52,14 +58,14 @@ namespace packing_probrem.Search
                 }
 
                 //Console.WriteLine($"[{i}]: current score {bestScore}");
-                changed = GetNaightborhoodBest(changed.order, i);
+                changed = GetNaightborhoodBest(changed.order, i, itrMax);
             }
 
             return new SearchResult(bestScore, bestOrder, scores);
         }
 
         /// <summary>部分近傍内で最も良い結果を返す</summary>
-        private (int score, IReadOnlyList<Box> order) GetNaightborhoodBest(IReadOnlyList<Box> rects, int itr)
+        private (int score, IReadOnlyList<Box> order) GetNaightborhoodBest(IReadOnlyList<Box> rects, int itr, int itrMax)
         {
             var bestResult = -1;
             var bestOrders = new List<IReadOnlyList<Box>> { rects };
@@ -71,8 +77,8 @@ namespace packing_probrem.Search
                     float ratio = RatioPatern switch
                     {
                         RatioType.Fix => (float)Random.NextDouble(),
-                        RatioType.LinerUpdate => i / IterMax * (PartialRatio - MinPartialRatio) + MinPartialRatio,
-                        RatioType.ExponentialUpdate => MinPartialRatio * MathF.Pow(PartialRatio / MinPartialRatio, i / IterMax),
+                        RatioType.LinerUpdate => itr / itrMax * (PartialRatio - MinPartialRatio) + MinPartialRatio,
+                        RatioType.ExponentialUpdate => MinPartialRatio * MathF.Pow(PartialRatio / MinPartialRatio, itr / itrMax),
                         _ => (float)Random.NextDouble()
                     };
 
