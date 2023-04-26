@@ -6,8 +6,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using packing_probrem.ConsoleDrawer;
-using packing_probrem.domain;
 using packing_probrem.domain.Extentions;
+using packing_probrem.domain.RectangularPackingProbelm;
 using packing_probrem.Search;
 
 namespace packing_probrem
@@ -220,7 +220,7 @@ namespace packing_probrem
         public string SearchAlgolismName { get; }
         public SearchResult Result { get; }
         public IReadOnlyList<Rect> Pushed { get; }
-        public IReadOnlyList<domain.Point> Points { get; }
+        public IReadOnlyList<domain.RectangularPackingProbelm.Point> Points { get; }
         public Section Section { get; }
 
         public ResultConstoler(SearchResult result, BottomLeftAlgolism algolism, Section section, string searchAlgolismName)
@@ -332,9 +332,9 @@ namespace packing_probrem
             public IReadOnlyList<Box> PutBox { get; }
             public IReadOnlyList<int> Scores { get; }
             public IReadOnlyList<Rect> PushedRects { get; }
-            public IReadOnlyList<domain.Point> BLStable { get; }
+            public IReadOnlyList<domain.RectangularPackingProbelm.Point> BLStable { get; }
 
-            internal WriteCommand(string path, DateTime startDate, int score, Section section, IReadOnlyList<Box> boxes, IReadOnlyList<int> scores, IReadOnlyList<Rect> rects, IReadOnlyList<domain.Point> bls) 
+            internal WriteCommand(string path, DateTime startDate, int score, Section section, IReadOnlyList<Box> boxes, IReadOnlyList<int> scores, IReadOnlyList<Rect> rects, IReadOnlyList<domain.RectangularPackingProbelm.Point> bls) 
             {
                 filePath = path;
                 StartDate = startDate;

@@ -4,7 +4,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Text;
 
-namespace packing_probrem.domain
+namespace packing_probrem.domain.RectangularPackingProbelm
 {
     /// <summary>座標を持たない箱</summary>
     record Box

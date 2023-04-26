@@ -1,4 +1,4 @@
-﻿using packing_probrem.domain;
+﻿using packing_probrem.domain.RectangularPackingProbelm;
 using System;
 using Point = System.Drawing.Point;
 

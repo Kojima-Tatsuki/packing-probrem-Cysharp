@@ -2,8 +2,9 @@
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Text;
+using packing_probrem.domain.RectangularPackingProbelm;
 
-namespace packing_probrem.domain
+namespace packing_probrem.domain.RectangularPackingProbelm
 {
     class Point : IComparable<Point>, IEquatable<Point>
     {

@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace packing_probrem.domain
+namespace packing_probrem.domain.RectangularPackingProbelm
 {
     record Section : Box
     {

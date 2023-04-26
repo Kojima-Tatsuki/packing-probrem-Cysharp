@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
-using packing_probrem.domain;
+using packing_probrem.domain.RectangularPackingProbelm;
 
 namespace packing_probrem.Search
 {

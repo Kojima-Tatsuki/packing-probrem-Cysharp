@@ -4,7 +4,7 @@ using System.Linq;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Channels;
-using packing_probrem.domain;
+using packing_probrem.domain.RectangularPackingProbelm;
 using packing_probrem.Search.Extentions;
 using static packing_probrem.Search.TabuSearch;
 

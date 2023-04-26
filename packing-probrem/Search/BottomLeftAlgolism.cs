@@ -2,8 +2,8 @@
 using System.Collections.Generic;
 using System.Text;
 using System.Linq;
-using packing_probrem.domain;
 using packing_probrem.domain.Extentions;
+using packing_probrem.domain.RectangularPackingProbelm;
 
 namespace packing_probrem.Search
 {

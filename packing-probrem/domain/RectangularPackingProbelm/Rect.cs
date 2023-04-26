@@ -4,8 +4,9 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
+using packing_probrem.domain.RectangularPackingProbelm;
 
-namespace packing_probrem.domain
+namespace packing_probrem.domain.RectangularPackingProbelm
 {
     class Rect : IComparable<Rect>
     {
@@ -73,7 +74,7 @@ namespace packing_probrem.domain
 
 namespace packing_probrem.domain.Extentions
 {
-    static class RectExtention 
+    static class RectExtention
     {
         /// <summary>
         /// Rectを高さ順に並び変える
@@ -87,7 +88,7 @@ namespace packing_probrem.domain.Extentions
             return result;
         }
 
-        public static IReadOnlyList<Box> ToBox(this IReadOnlyList<Rect> rects) 
+        public static IReadOnlyList<Box> ToBox(this IReadOnlyList<Rect> rects)
             => rects
                 .Select(_ => _.ToBox())
                 .ToList();
