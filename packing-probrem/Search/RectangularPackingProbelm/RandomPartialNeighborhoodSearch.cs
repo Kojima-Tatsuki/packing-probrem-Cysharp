@@ -5,7 +5,7 @@ using System.Text;
 using packing_probrem.domain.RectangularPackingProbelm;
 using packing_probrem.Search.Extentions;
 
-namespace packing_probrem.Search
+namespace packing_probrem.Search.RectangularPackingProbelm
 {
     // ランダム部分近傍探索法
     internal class RandomPartialNeighborhoodSearch : ISearch
@@ -46,9 +46,9 @@ namespace packing_probrem.Search
             var itrMax = timeSpan == null ? IterMax : TimeIterMax;
             var changed = GetNaightborhoodBest(init, 0, itrMax);
 
-            for (int i = 1; 
-                i < itrMax && 
-                timeSpan == null? true: DateTime.Now.Subtract(startTime) < timeSpan; i++)
+            for (int i = 1;
+                i < itrMax &&
+                timeSpan == null ? true : DateTime.Now.Subtract(startTime) < timeSpan; i++)
             {
                 if (changed.score < bestScore)
                 {

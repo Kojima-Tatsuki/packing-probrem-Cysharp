@@ -1,14 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using packing_probrem.ConsoleDrawer;
-using packing_probrem.domain.Extentions;
 using packing_probrem.domain.RectangularPackingProbelm;
-using packing_probrem.Search;
+using packing_probrem.Search.RectangularPackingProbelm;
 
 namespace packing_probrem
 {

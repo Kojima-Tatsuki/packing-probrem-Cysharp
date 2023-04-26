@@ -4,7 +4,7 @@ using System.Text;
 using packing_probrem.domain.RectangularPackingProbelm;
 using packing_probrem.Search.Extentions;
 
-namespace packing_probrem.Search
+namespace packing_probrem.Search.RectangularPackingProbelm
 {
     // 局所探索
     class LocalSearch : ISearch
@@ -26,7 +26,7 @@ namespace packing_probrem.Search
 
             var scores = new List<int> { bestScore };
 
-            while (changed.isInclude && timeSpan == null? true: DateTime.Now.Subtract(startTime) < timeSpan)
+            while (changed.isInclude && timeSpan == null ? true : DateTime.Now.Subtract(startTime) < timeSpan)
             {
                 bestScore = changed.score;
                 bestOrder = changed.order;

@@ -18,6 +18,7 @@
 
   <ItemGroup>
     <Folder Include="domain\QuadraticAssignmentProblem\" />
+    <Folder Include="Search\QuadraticAssignmentProblem\" />
   </ItemGroup>
 
 </Project>

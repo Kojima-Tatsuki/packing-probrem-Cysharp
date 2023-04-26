@@ -6,9 +6,9 @@ using System.Text;
 using System.Threading.Channels;
 using packing_probrem.domain.RectangularPackingProbelm;
 using packing_probrem.Search.Extentions;
-using static packing_probrem.Search.TabuSearch;
+using static packing_probrem.Search.RectangularPackingProbelm.TabuSearch;
 
-namespace packing_probrem.Search
+namespace packing_probrem.Search.RectangularPackingProbelm
 {
     class TabuSearch : ISearch
     {
@@ -44,8 +44,8 @@ namespace packing_probrem.Search
 
             var changed = IsIncludeMores(new Order(tabuBoxes, new(0, 0)), tabuList);
 
-            for (int i = 0; i < maxItr && 
-                timeSpan == null? true: DateTime.Now.Subtract(startTime) < timeSpan; i++)
+            for (int i = 0; i < maxItr &&
+                timeSpan == null ? true : DateTime.Now.Subtract(startTime) < timeSpan; i++)
             {
                 // スコアの更新
                 if (changed.Score < bestScore)
@@ -89,7 +89,7 @@ namespace packing_probrem.Search
                         bestOrders = new List<Order> { orderModel };
                         bestScore = score;
                     }
-                    else if(score == bestScore)
+                    else if (score == bestScore)
                         bestOrders.Add(orderModel);
                 }
             }
@@ -159,19 +159,19 @@ namespace packing_probrem.Search
                 }
                 else
                 {
-                    First= b;
-                    Second= a;
+                    First = b;
+                    Second = a;
                 }
             }
         }
 
         private record TabuBox : Box
         {
-            public int Index { get;init; }
+            public int Index { get; init; }
 
-            public TabuBox(int index, Box original): base(original)
+            public TabuBox(int index, Box original) : base(original)
             {
-                Index= index;
+                Index = index;
             }
         }
 

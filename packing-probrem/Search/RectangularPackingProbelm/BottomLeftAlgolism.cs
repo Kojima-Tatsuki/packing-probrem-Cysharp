@@ -5,7 +5,7 @@ using System.Linq;
 using packing_probrem.domain.Extentions;
 using packing_probrem.domain.RectangularPackingProbelm;
 
-namespace packing_probrem.Search
+namespace packing_probrem.Search.RectangularPackingProbelm
 {
     class BottomLeftAlgolism : IAlgolism
     {
@@ -26,7 +26,7 @@ namespace packing_probrem.Search
         {
             var pushed = new List<Rect>();
 
-            if (boxes == null ||boxes.Count == 0)
+            if (boxes == null || boxes.Count == 0)
                 return (0, pushed);
 
             var stables = MotherSection.StablePoints;

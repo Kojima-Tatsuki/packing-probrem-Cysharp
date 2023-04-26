@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using packing_probrem.domain.RectangularPackingProbelm;
 
-namespace packing_probrem.Search
+namespace packing_probrem.Search.RectangularPackingProbelm
 {
     interface IAlgolism
     {
@@ -17,7 +17,7 @@ namespace packing_probrem.Search
         public int Score { get; }
         public IReadOnlyList<Box> Order { get; }
         public IReadOnlyList<int> Scores { get; }
-     
+
         public SearchResult(int score, IReadOnlyList<Box> order, IReadOnlyList<int> scores)
         {
             Score = score;
