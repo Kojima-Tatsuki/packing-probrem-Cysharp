@@ -22,23 +22,8 @@ namespace packing_probrem
             if (!Directory.Exists(Environment.CurrentDirectory + "\\result"))
                 Directory.CreateDirectory(Environment.CurrentDirectory + "\\result");
 
+            Console.WriteLine("詰め込む箱の数を指定してください: ");
             var boxCount = int.Parse(Console.ReadLine());
-
-            /*string readFilePath(int num) => $"\\probrems\\pushRect-{num}.csv";
-
-            var br = new BoxReader();
-            IReadOnlyList<Box> loadedBoxes = new List<Box>();
-
-            if (File.Exists(Environment.CurrentDirectory + readFilePath(boxCount)))
-                loadedBoxes = br.ReadBoxesFromFile(Environment.CurrentDirectory + readFilePath(boxCount));
-            else
-                loadedBoxes = new BoxGenereter().Create(boxCount, (5, 17), (7, 15));
-
-            br.WriteBoxesToFile(Environment.CurrentDirectory + readFilePath(boxCount), loadedBoxes);
-
-            Console.WriteLine("Loaded Boxes");
-            for (int i = 0; i < loadedBoxes.Count; i++)
-                Console.WriteLine($"[{i}]: {loadedBoxes[i]}");*/
 
             var section = new Section(new(33, 16));
             Console.WriteLine($"Section {section}");
