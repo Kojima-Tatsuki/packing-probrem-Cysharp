@@ -26,6 +26,8 @@ namespace packing_probrem.Search.RectangularPackingProbelm
 
             var scores = new List<int> { bestScore };
 
+            int i = 0;
+
             while (changed.isInclude && timeSpan == null ? true : DateTime.Now.Subtract(startTime) < timeSpan)
             {
                 bestScore = changed.score;
@@ -33,8 +35,9 @@ namespace packing_probrem.Search.RectangularPackingProbelm
                 scores.Add(changed.score);
 
                 changed = IsIncludeMore(bestOrder);
+                i++;
             }
-            return new SearchResult(bestScore, bestOrder, scores);
+            return new SearchResult(bestScore, bestOrder, scores, i);
         }
 
         // より良い解が存在するか

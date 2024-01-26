@@ -34,7 +34,7 @@ namespace packing_probrem
             for (int i = 0; i < LoopCount; i++)
                 lst.Add(new Dictionary<string, int>());
 
-            lst = lst.AsParallel()
+            lst = lst
                 .Select((l, i) => (l, i))
                 .Select(tuple => doer.Do(new BoxGenereter().Create(boxCount, (6, 18), (8, 16)), tuple.i))
                 .ToList();
@@ -101,28 +101,51 @@ namespace packing_probrem
             {
                 new LocalSearch(bl),
                 new TabuSearch(bl),
+                new TabuSearch(bl, 3),
+                new TabuSearch(bl, 5),
+                new TabuSearch(bl, 7),
+                new TabuSearch(bl, 11),
+                new TabuSearch(bl, 13),
+                new TabuSearch(bl, 17),
+                new TabuSearch(bl, 23),
+                new TabuSearch(bl, 29),
+                new TabuSearch(bl, 37),
+                new TabuSearch(bl, 47),
                 new RandomPartialNeighborhoodSearch(bl, 1.0f, RandomPartialNeighborhoodSearch.RatioType.Fix),
-                //new RandomPartialNeighborhoodSearch(bl, 0.9f, RandomPartialNeighborhoodSearch.RatioType.Fix),
-                //new RandomPartialNeighborhoodSearch(bl, 0.8f, RandomPartialNeighborhoodSearch.RatioType.Fix),
-                //new RandomPartialNeighborhoodSearch(bl, 0.7f, RandomPartialNeighborhoodSearch.RatioType.Fix),
-                //new RandomPartialNeighborhoodSearch(bl, 0.6f, RandomPartialNeighborhoodSearch.RatioType.Fix),
-                //new RandomPartialNeighborhoodSearch(bl, 0.5f, RandomPartialNeighborhoodSearch.RatioType.Fix),
-                //new RandomPartialNeighborhoodSearch(bl, 0.4f, RandomPartialNeighborhoodSearch.RatioType.Fix),
+                new RandomPartialNeighborhoodSearch(bl, 0.5f, RandomPartialNeighborhoodSearch.RatioType.Fix),
                 new RandomPartialNeighborhoodSearch(bl, 0.3f, RandomPartialNeighborhoodSearch.RatioType.Fix),
                 new RandomPartialNeighborhoodSearch(bl, 0.2f, RandomPartialNeighborhoodSearch.RatioType.Fix),
-                //new RandomPartialNeighborhoodSearch(bl, 0.1f, RandomPartialNeighborhoodSearch.RatioType.Fix),
-                //new RandomPartialNeighborhoodSearch(bl, 0.05f, RandomPartialNeighborhoodSearch.RatioType.Fix),
-                //new RandomPartialNeighborhoodSearch(bl, 0.01f, RandomPartialNeighborhoodSearch.RatioType.Fix),
+                new RandomPartialNeighborhoodSearch(bl, 0.1f, RandomPartialNeighborhoodSearch.RatioType.Fix),
+                new RandomPartialNeighborhoodSearch(bl, 0.05f, RandomPartialNeighborhoodSearch.RatioType.Fix),
+                new RandomPartialNeighborhoodSearch(bl, 0.03f, RandomPartialNeighborhoodSearch.RatioType.Fix),
+                new RandomPartialNeighborhoodSearch(bl, 0.02f, RandomPartialNeighborhoodSearch.RatioType.Fix),
+                new RandomPartialNeighborhoodSearch(bl, 0.01f, RandomPartialNeighborhoodSearch.RatioType.Fix),
+                new RandomPartialNeighborhoodSearch(bl, 0.4f, RandomPartialNeighborhoodSearch.RatioType.LinerUpdate),
+                new RandomPartialNeighborhoodSearch(bl, 0.35f, RandomPartialNeighborhoodSearch.RatioType.LinerUpdate),
                 new RandomPartialNeighborhoodSearch(bl, 0.3f, RandomPartialNeighborhoodSearch.RatioType.LinerUpdate),
+                new RandomPartialNeighborhoodSearch(bl, 0.25f, RandomPartialNeighborhoodSearch.RatioType.LinerUpdate),
                 new RandomPartialNeighborhoodSearch(bl, 0.2f, RandomPartialNeighborhoodSearch.RatioType.LinerUpdate),
+                new RandomPartialNeighborhoodSearch(bl, 0.15f, RandomPartialNeighborhoodSearch.RatioType.LinerUpdate),
                 new RandomPartialNeighborhoodSearch(bl, 0.1f, RandomPartialNeighborhoodSearch.RatioType.LinerUpdate),
+                new RandomPartialNeighborhoodSearch(bl, 0.07f, RandomPartialNeighborhoodSearch.RatioType.LinerUpdate),
                 new RandomPartialNeighborhoodSearch(bl, 0.05f, RandomPartialNeighborhoodSearch.RatioType.LinerUpdate),
+                new RandomPartialNeighborhoodSearch(bl, 0.03f, RandomPartialNeighborhoodSearch.RatioType.LinerUpdate),
+                new RandomPartialNeighborhoodSearch(bl, 0.02f, RandomPartialNeighborhoodSearch.RatioType.LinerUpdate),
+                new RandomPartialNeighborhoodSearch(bl, 0.015f, RandomPartialNeighborhoodSearch.RatioType.LinerUpdate),
                 new RandomPartialNeighborhoodSearch(bl, 0.01f, RandomPartialNeighborhoodSearch.RatioType.LinerUpdate),
                 new RandomPartialNeighborhoodSearch(bl, 0.005f, RandomPartialNeighborhoodSearch.RatioType.LinerUpdate),
+                new RandomPartialNeighborhoodSearch(bl, 0.4f, RandomPartialNeighborhoodSearch.RatioType.ExponentialUpdate),
+                new RandomPartialNeighborhoodSearch(bl, 0.35f, RandomPartialNeighborhoodSearch.RatioType.ExponentialUpdate),
                 new RandomPartialNeighborhoodSearch(bl, 0.3f, RandomPartialNeighborhoodSearch.RatioType.ExponentialUpdate),
+                new RandomPartialNeighborhoodSearch(bl, 0.25f, RandomPartialNeighborhoodSearch.RatioType.ExponentialUpdate),
                 new RandomPartialNeighborhoodSearch(bl, 0.2f, RandomPartialNeighborhoodSearch.RatioType.ExponentialUpdate),
+                new RandomPartialNeighborhoodSearch(bl, 0.15f, RandomPartialNeighborhoodSearch.RatioType.ExponentialUpdate),
                 new RandomPartialNeighborhoodSearch(bl, 0.1f, RandomPartialNeighborhoodSearch.RatioType.ExponentialUpdate),
+                new RandomPartialNeighborhoodSearch(bl, 0.07f, RandomPartialNeighborhoodSearch.RatioType.ExponentialUpdate),
                 new RandomPartialNeighborhoodSearch(bl, 0.05f, RandomPartialNeighborhoodSearch.RatioType.ExponentialUpdate),
+                new RandomPartialNeighborhoodSearch(bl, 0.03f, RandomPartialNeighborhoodSearch.RatioType.ExponentialUpdate),
+                new RandomPartialNeighborhoodSearch(bl, 0.02f, RandomPartialNeighborhoodSearch.RatioType.ExponentialUpdate),
+                new RandomPartialNeighborhoodSearch(bl, 0.015f, RandomPartialNeighborhoodSearch.RatioType.ExponentialUpdate),
                 new RandomPartialNeighborhoodSearch(bl, 0.01f, RandomPartialNeighborhoodSearch.RatioType.ExponentialUpdate),
                 new RandomPartialNeighborhoodSearch(bl, 0.005f, RandomPartialNeighborhoodSearch.RatioType.ExponentialUpdate),
             };
@@ -137,14 +160,14 @@ namespace packing_probrem
 
             results = searchs
                 .AsParallel()
-                //.WithDegreeOfParallelism(2)
+                .WithDegreeOfParallelism(12)
                 .Select(s =>
                 {
                     if (index != -1)
                         Console.WriteLine($"[{index}] Start {s.ToString()}");
                     else Console.WriteLine($"Start {s.ToString()}");
 
-                    var result = (result: s.Search(loadedBoxes, TimeSpan.FromMinutes(90)), name: s.ToString());
+                    var result = (result: s.Search(loadedBoxes, TimeSpan.FromSeconds(15)), name: s.ToString());
 
                     if (index != -1)
                         Console.WriteLine($"[{index}] End {result.name}, score: {result.result.Score}");
@@ -202,7 +225,7 @@ namespace packing_probrem
         public string SearchAlgolismName { get; }
         public SearchResult Result { get; }
         public IReadOnlyList<Rect> Pushed { get; }
-        public IReadOnlyList<domain.RectangularPackingProbelm.Point> Points { get; }
+        public IReadOnlyList<Point> Points { get; }
         public Section Section { get; }
 
         public ResultConstoler(SearchResult result, BottomLeftAlgolism algolism, Section section, string searchAlgolismName)
@@ -258,6 +281,7 @@ namespace packing_probrem
             {
                 sw.WriteLine($"[{i}]: {command.PushedRects[i]}");
             }
+            sw.WriteLine($"Iter Count: {command.}")
             Console.WriteLine("\n");
         }
 
@@ -267,6 +291,7 @@ namespace packing_probrem
                 filePath,
                 startDate,
                 constoler.Result.Score,
+                constoler.Result.Iterations,
                 constoler.Section,
                 constoler.Result.Order,
                 constoler.Result.Scores,
@@ -310,17 +335,19 @@ namespace packing_probrem
             public string filePath { get; }
             public DateTime StartDate { get; }
             public int Score { get; }
+            public int IterCount { get; }
             public Section MotherSection { get; }
             public IReadOnlyList<Box> PutBox { get; }
             public IReadOnlyList<int> Scores { get; }
             public IReadOnlyList<Rect> PushedRects { get; }
-            public IReadOnlyList<domain.RectangularPackingProbelm.Point> BLStable { get; }
+            public IReadOnlyList<Point> BLStable { get; }
 
-            internal WriteCommand(string path, DateTime startDate, int score, Section section, IReadOnlyList<Box> boxes, IReadOnlyList<int> scores, IReadOnlyList<Rect> rects, IReadOnlyList<domain.RectangularPackingProbelm.Point> bls)
+            internal WriteCommand(string path, DateTime startDate, int score, int iterCount, Section section, IReadOnlyList<Box> boxes, IReadOnlyList<int> scores, IReadOnlyList<Rect> rects, IReadOnlyList<domain.RectangularPackingProbelm.Point> bls)
             {
                 filePath = path;
                 StartDate = startDate;
                 Score = score;
+                IterCount = iterCount;
                 MotherSection = section;
                 PutBox = boxes;
                 Scores = scores;

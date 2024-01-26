@@ -1,12 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net.Http.Headers;
-using System.Text;
-using System.Threading.Channels;
 using packing_probrem.domain.RectangularPackingProbelm;
 using packing_probrem.Search.Extentions;
-using static packing_probrem.Search.RectangularPackingProbelm.TabuSearch;
 
 namespace packing_probrem.Search.RectangularPackingProbelm
 {
@@ -18,19 +14,21 @@ namespace packing_probrem.Search.RectangularPackingProbelm
 
         private int IterMax { get; init; }
         private int TimeIterMax { get; init; }
+        private int? TabuListLength { get; init; }
 
-        public TabuSearch(IAlgolism algolism)
+        public TabuSearch(IAlgolism algolism, int? tabuListLength = null)
         {
             Algolism = algolism;
             Random = new Random();
 
             IterMax = 100;
-            TimeIterMax = 100000;
+            TimeIterMax = int.MaxValue;
+            TabuListLength = tabuListLength;
         }
 
         public SearchResult Search(IReadOnlyList<Box> init, TimeSpan? timeSpan)
         {
-            var tabuList = new TabuList(init.Count);
+            var tabuList = new TabuList(TabuListLength ?? (int)Math.Sqrt(init.Count));
             var maxItr = timeSpan == null ? IterMax : TimeIterMax;
 
             var tabuBoxes = init.Select((box, index) => new TabuBox(index, box)).ToList();
@@ -44,9 +42,15 @@ namespace packing_probrem.Search.RectangularPackingProbelm
 
             var changed = IsIncludeMores(new Order(tabuBoxes, new(0, 0)), tabuList);
 
-            for (int i = 0; i < maxItr &&
+            int i = 1;
+
+            for (; i < maxItr &&
                 timeSpan == null ? true : DateTime.Now.Subtract(startTime) < timeSpan; i++)
             {
+                // タブリストを満たす解がないなら終了
+                if (!changed.IsInclude)
+                    break;
+
                 // スコアの更新
                 if (changed.Score < bestScore)
                 {
@@ -63,7 +67,7 @@ namespace packing_probrem.Search.RectangularPackingProbelm
                 changed = IsIncludeMores(changed.Orders[index], tabuList);
             }
 
-            return new SearchResult(bestScore, bestOrder, scores);
+            return new SearchResult(bestScore, bestOrder, scores, i);
         }
 
         private IncludeMoreResult IsIncludeMores(Order init, TabuList tabus)
@@ -119,16 +123,16 @@ namespace packing_probrem.Search.RectangularPackingProbelm
             private Queue<Pair> BoxPairs { get; init; }
             private Queue<int> IntQueue { get; init; }
 
-            public TabuList(int boxCount)
+            public TabuList(int length)
             {
-                Length = (int)Math.Sqrt(boxCount); // 平方根を取る
+                Length = length; // 平方根を取る
                 BoxPairs = new Queue<Pair>(Length);
                 IntQueue = new Queue<int>(Length * 2);
             }
 
             public void AddTabuList(Pair pair)
             {
-                if (BoxPairs.Count == Length)
+                if (BoxPairs.Count >= Length)
                 {
                     BoxPairs.Dequeue();
                     IntQueue.Dequeue();
@@ -179,7 +183,7 @@ namespace packing_probrem.Search.RectangularPackingProbelm
 
         public override string ToString()
         {
-            return "Tabu Search";
+            return $"Tabu Search, {TabuListLength}";
         }
     }
 }

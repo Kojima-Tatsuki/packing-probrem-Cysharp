@@ -30,7 +30,7 @@ namespace packing_probrem.Search.RectangularPackingProbelm
             RatioPatern = type;
 
             IterMax = 100;
-            TimeIterMax = 100000;
+            TimeIterMax = int.MaxValue;
 
             Random = new Random();
         }
@@ -46,7 +46,9 @@ namespace packing_probrem.Search.RectangularPackingProbelm
             var itrMax = timeSpan == null ? IterMax : TimeIterMax;
             var changed = GetNaightborhoodBest(init, 0, itrMax);
 
-            for (int i = 1;
+            int i = 1;
+
+            for (;
                 i < itrMax &&
                 timeSpan == null ? true : DateTime.Now.Subtract(startTime) < timeSpan; i++)
             {
@@ -61,7 +63,7 @@ namespace packing_probrem.Search.RectangularPackingProbelm
                 changed = GetNaightborhoodBest(changed.order, i, itrMax);
             }
 
-            return new SearchResult(bestScore, bestOrder, scores);
+            return new SearchResult(bestScore, bestOrder, scores, i);
         }
 
         /// <summary>部分近傍内で最も良い結果を返す</summary>
