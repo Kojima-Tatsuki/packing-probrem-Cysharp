@@ -30,52 +30,43 @@ namespace packing_probrem
 
             const int LoopCount = 1;
 
-            List<Dictionary<string, int>> lst = new List<Dictionary<string, int>>(LoopCount);
+            var searchResultDictList = new List<Dictionary<string, SearchResult>>(LoopCount);
 
             for (int i = 0; i < LoopCount; i++)
-                lst.Add(new Dictionary<string, int>());
+            {
+                searchResultDictList.Add(doer.Do(new BoxGenereter().Create(boxCount, (6, 18), (8, 16)), i));
+            }
 
-            lst = lst
-                .Select((l, i) => (l, i))
-                .Select(tuple => doer.Do(new BoxGenereter().Create(boxCount, (6, 18), (8, 16)), tuple.i))
-                .ToList();
-
-            // 平均値の出力
-
+            #region 平均値のファイル出力
             using var sw = new StreamWriter(
                 append: true,
                 path: Environment.CurrentDirectory + $"\\result\\pushed-{boxCount}-{date.ToString("yyyyMMdd-HHmmss")}.txt");
 
             sw.WriteLine($"Result\n{DateTime.Now}\n");
 
-            var re = new Dictionary<string, List<int>>();
+            var searchResults = searchResultDictList
+                .SelectMany(dic => dic)
+                .GroupBy(pair => pair.Key)
+                .ToDictionary(group => group.Key, group => group.Select(pair => pair.Value).ToList());
 
-            foreach (var l in lst)
+            foreach (var item in searchResults)
             {
-                foreach (var d in l)
-                {
-                    if (re.ContainsKey(d.Key))
-                        re[d.Key].Add(d.Value);
-                    else
-                        re[d.Key] = new List<int> { d.Value };
-                }
-            }
+                int sum = 0, best = int.MaxValue, warst = int.MinValue, sumIter = 0;
 
-            foreach (var item in re)
-            {
-                int sum = 0, best = -1, warst = -1;
-
-                foreach (var current in item.Value)
+                foreach (var searchResult in item.Value)
                 {
-                    sum += current;
-                    if (current < best || best == -1)
-                        best = current;
-                    if (warst < current || warst == -1)
-                        warst = current;
+                    var score = searchResult.Score;
+                    sum += score;
+                    sumIter += searchResult.Iterations;
+                    if (score < best)
+                        best = score;
+                    if (warst < score)
+                        warst = score;
                 }
 
-                sw.WriteLine($"{item.Key}, Ave: {(float)sum / item.Value.Count}, Best: {best}, Wearst: {warst}\n");
+                sw.WriteLine($"{item.Key}, Ave: {(float)sum / item.Value.Count}, Best: {best}, Wearst: {warst}, Iter: {(float)sumIter / item.Value.Count}");
             }
+            #endregion
         }
     }
 
@@ -95,7 +86,7 @@ namespace packing_probrem
             CalcDate = calcDate;
         }
 
-        public Dictionary<string, int> Do(IReadOnlyList<Box> loadedBoxes, int index = 0)
+        public Dictionary<string, SearchResult> Do(IReadOnlyList<Box> loadedBoxes, int index = 0)
         {
             var bl = new BottomLeftAlgolism(Section, false);
 
@@ -200,7 +191,7 @@ namespace packing_probrem
                 filePath: Environment.CurrentDirectory + $"\\probrems\\pushedRect-{loadedBoxes.Count}.txt",
                 loadedBoxes);
 
-            return results.ToDictionary(pair => pair.name, pair => pair.result.Score);
+            return results.ToDictionary(pair => pair.name, pair => pair.result);
         }
     }
     
