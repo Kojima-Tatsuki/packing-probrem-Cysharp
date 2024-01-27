@@ -122,33 +122,25 @@ namespace packing_probrem.Search.RectangularPackingProbelm
         private class TabuList
         {
             public int Length { get; init; }
-            private Queue<Pair> BoxPairs { get; init; }
             private Queue<int> IntQueue { get; init; }
 
             public TabuList(int length)
             {
                 Length = length; // 平方根を取る
-                BoxPairs = new Queue<Pair>(Length);
-                IntQueue = new Queue<int>(Length * 2);
+                IntQueue = new Queue<int>(Length);
             }
 
             public void AddTabuList(Pair pair)
             {
-                if (BoxPairs.Count >= Length)
+                foreach (var item in pair.ToArray())
                 {
-                    BoxPairs.Dequeue();
-                    IntQueue.Dequeue();
-                    IntQueue.Dequeue();
+                    if (IntQueue.Count >= Length)
+                        IntQueue.Dequeue();
+                    IntQueue.Enqueue(item);
                 }
-                BoxPairs.Enqueue(pair);
-                IntQueue.Enqueue(pair.First);
-                IntQueue.Enqueue(pair.Second);
             }
 
-            /// <summary>first < second を満たす</summary>
-            public IReadOnlyCollection<Pair> GetIndexPairs() => BoxPairs.ToList();
-
-            public bool IsTabu(TabuBox i, TabuBox k) => IntQueue.Any(_ => _ == i.Index || _ == k.Index);
+            public bool IsTabu(TabuBox i, TabuBox k) => IntQueue.Any(item => item == i.Index || item == k.Index);
         }
 
         private record Pair
@@ -168,6 +160,15 @@ namespace packing_probrem.Search.RectangularPackingProbelm
                     First = b;
                     Second = a;
                 }
+            }
+
+            public int[] ToArray()
+            {
+                var isFirst = new Random().Next(2) == 1;
+                if (isFirst)
+                    return new int[] { First, Second };
+                else
+                    return new int[] { Second, First };
             }
         }
 

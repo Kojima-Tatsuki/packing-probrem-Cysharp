@@ -26,23 +26,22 @@ namespace packing_probrem
             Console.WriteLine($"Section {section}");
             var date = DateTime.Now;
 
-            var doer = new Doer(false, section, date, TimeSpan.FromSeconds(60));
+            var searchTime = TimeSpan.FromSeconds(30);
+            var doer = new Doer(false, section, date, searchTime);
 
             const int LoopCount = 1;
 
             var searchResultDictList = new List<Dictionary<string, SearchResult>>(LoopCount);
 
             for (int i = 0; i < LoopCount; i++)
-            {
                 searchResultDictList.Add(doer.Do(new BoxGenereter().Create(boxCount, (6, 18), (8, 16)), i));
-            }
 
             #region 平均値のファイル出力
             using var sw = new StreamWriter(
                 append: true,
                 path: Environment.CurrentDirectory + $"\\result\\pushed-{boxCount}-{date.ToString("yyyyMMdd-HHmmss")}.txt");
 
-            sw.WriteLine($"Result\n{DateTime.Now}\n");
+            sw.WriteLine($"Result\nSearchTime[sec]: {searchTime.TotalSeconds}");
 
             var searchResults = searchResultDictList
                 .SelectMany(dic => dic)
@@ -104,7 +103,7 @@ namespace packing_probrem
                 new TabuSearch(bl, 29),
                 new TabuSearch(bl, 37),
                 new TabuSearch(bl, 47),
-                new RandomPartialNeighborhoodSearch(bl, 1.0f, RandomPartialNeighborhoodSearch.RatioType.Fix),
+                /*new RandomPartialNeighborhoodSearch(bl, 1.0f, RandomPartialNeighborhoodSearch.RatioType.Fix),
                 new RandomPartialNeighborhoodSearch(bl, 0.5f, RandomPartialNeighborhoodSearch.RatioType.Fix),
                 new RandomPartialNeighborhoodSearch(bl, 0.3f, RandomPartialNeighborhoodSearch.RatioType.Fix),
                 new RandomPartialNeighborhoodSearch(bl, 0.2f, RandomPartialNeighborhoodSearch.RatioType.Fix),
@@ -140,7 +139,7 @@ namespace packing_probrem
                 new RandomPartialNeighborhoodSearch(bl, 0.02f, RandomPartialNeighborhoodSearch.RatioType.ExponentialUpdate),
                 new RandomPartialNeighborhoodSearch(bl, 0.015f, RandomPartialNeighborhoodSearch.RatioType.ExponentialUpdate),
                 new RandomPartialNeighborhoodSearch(bl, 0.01f, RandomPartialNeighborhoodSearch.RatioType.ExponentialUpdate),
-                new RandomPartialNeighborhoodSearch(bl, 0.005f, RandomPartialNeighborhoodSearch.RatioType.ExponentialUpdate),
+                new RandomPartialNeighborhoodSearch(bl, 0.005f, RandomPartialNeighborhoodSearch.RatioType.ExponentialUpdate),*/
             };
 
             Console.WriteLine($"\n[{index}] == Start Search ==");
@@ -148,7 +147,7 @@ namespace packing_probrem
 
             var results = searchs
                 .AsParallel()
-                .WithDegreeOfParallelism(12)
+                .WithDegreeOfParallelism(6)
                 .Select(s =>
                 {
                     // Console.WriteLine($"[{index}] Start {s.ToString()}");
