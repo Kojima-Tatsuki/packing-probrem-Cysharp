@@ -83,9 +83,8 @@ namespace packing_probrem.Search.RectangularPackingProbelm
                     var score = Algolism.Cal(order);
                     var orderModel = new TabuOrder(order, new Pair(init[i].Index, init[k].Index));
 
-                    if (score < bestScore || bestScore == -1)
+                    if (score < bestScore)
                     {
-                        // Console.WriteLine("より良い解が見つかったよ！！");
                         bestOrders = new List<TabuOrder> { orderModel };
                         bestScore = score;
                     }
@@ -94,14 +93,14 @@ namespace packing_probrem.Search.RectangularPackingProbelm
                 }
             }
 
-            var isChangeable = bestOrders.Count == 0;
-            if (isChangeable)
-                return new(isChangeable, bestScore, init, tabuList);
+            var isInclude = bestOrders.Count != 0;
+            if (!isInclude)
+                return new(isInclude, bestScore, init, tabuList);
 
             var resultTabuOrder = bestOrders[Random.Next(0, bestOrders.Count)];
             tabuList.AddTabuList(resultTabuOrder.Pair);
 
-            return new(isChangeable, bestScore, resultTabuOrder.Order, tabuList);
+            return new(isInclude, bestScore, resultTabuOrder.Order, tabuList);
         }
 
         private class IncludeMoreResult
