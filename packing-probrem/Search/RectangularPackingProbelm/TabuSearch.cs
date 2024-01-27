@@ -9,11 +9,8 @@ namespace packing_probrem.Search.RectangularPackingProbelm
     class TabuSearch : ISearch
     {
         private readonly IAlgolism Algolism;
-
         private readonly Random Random;
 
-        private int IterMax { get; init; }
-        private int TimeIterMax { get; init; }
         private int? TabuListLength { get; init; }
 
         public TabuSearch(IAlgolism algolism, int? tabuListLength = null)
@@ -21,15 +18,12 @@ namespace packing_probrem.Search.RectangularPackingProbelm
             Algolism = algolism;
             Random = new Random();
 
-            IterMax = 100;
-            TimeIterMax = int.MaxValue;
             TabuListLength = tabuListLength;
         }
 
         public SearchResult Search(IReadOnlyList<Box> init, TimeSpan? timeSpan)
         {
             var tabuList = new TabuList(TabuListLength ?? (int)Math.Sqrt(init.Count));
-            var maxItr = timeSpan == null ? IterMax : TimeIterMax;
 
             var tabuBoxes = init.Select((box, index) => new TabuBox(index, box)).ToList();
             var boxDictionary = tabuBoxes
@@ -37,60 +31,62 @@ namespace packing_probrem.Search.RectangularPackingProbelm
 
             var bestScore = Algolism.Cal(tabuBoxes);
             var bestOrder = tabuBoxes;
+
+            var currentScore = bestScore;
+            var currentOrder = bestOrder;
+
             var scores = new List<int> { bestScore };
+
+            var searchTime = timeSpan ?? TimeSpan.FromSeconds(init.ToList().Count);
             var startTime = DateTime.Now;
+            var loopCount = 0;
 
-            var changed = IsIncludeMores(new Order(tabuBoxes, new(0, 0)), tabuList);
-
-            int i = 1;
-
-            for (; i < maxItr &&
-                timeSpan == null ? true : DateTime.Now.Subtract(startTime) < timeSpan; i++)
+            while (DateTime.Now.Subtract(startTime) < searchTime)
             {
+                var changed = IsIncludeMores(currentOrder, tabuList);
+
                 // タブリストを満たす解がないなら終了
                 if (!changed.IsInclude)
                     break;
 
+                currentOrder = changed.Order.ToList();
+                currentScore = changed.Score;
+                tabuList = changed.TabuList;
+                
                 // スコアの更新
                 if (changed.Score < bestScore)
                 {
-                    // currentScoreLoops = 0;
                     bestScore = changed.Score;
                     scores.Add(changed.Score);
                 }
 
-                var index = Random.Next(0, changed.Orders.Count);
-
-                // Console.WriteLine($"[{i}]: score {bestScore.score}, {changed.orders.Count}, current: {currentScoreLoops}");
-
-                tabuList.AddTabuList(changed.Orders[index].index); // タブーリストに追加
-                changed = IsIncludeMores(changed.Orders[index], tabuList);
+                loopCount++;
             }
 
-            return new SearchResult(bestScore, bestOrder, scores, i);
+            return new SearchResult(bestScore, bestOrder, scores, loopCount);
         }
 
-        private IncludeMoreResult IsIncludeMores(Order init, TabuList tabus)
+        private IncludeMoreResult IsIncludeMores(IReadOnlyList<TabuBox> init, TabuList tabuList)
         {
-            var bestScore = -1;
-            var bestOrders = new List<Order> { init };
+            var bestScore = int.MaxValue;
+            var bestOrders = new List<TabuOrder>();
 
-            for (int i = 0; i < init.Value.Count - 2; i++)
+            for (int i = 0; i < init.Count; i++)
             {
-                for (int k = i + 1; k < init.Value.Count - 1; k++)
+                for (int k = i + 1; k < init.Count; k++)
                 {
                     // 並び変えた後の配列がタブーリストと一致しているなら探索しない
-                    if (tabus.IsTabu(init.Value[i], init.Value[k]))
+                    if (tabuList.IsTabu(init[i], init[k]))
                         continue;
 
-                    var order = init.Value.ChangeOrder(i, k);
+                    var order = init.ChangeOrder(i, k);
                     var score = Algolism.Cal(order);
-                    var orderModel = new Order(order, new Pair(init.Value[i].Index, init.Value[k].Index));
+                    var orderModel = new TabuOrder(order, new Pair(init[i].Index, init[k].Index));
 
                     if (score < bestScore || bestScore == -1)
                     {
                         // Console.WriteLine("より良い解が見つかったよ！！");
-                        bestOrders = new List<Order> { orderModel };
+                        bestOrders = new List<TabuOrder> { orderModel };
                         bestScore = score;
                     }
                     else if (score == bestScore)
@@ -98,22 +94,29 @@ namespace packing_probrem.Search.RectangularPackingProbelm
                 }
             }
 
-            var isChangeable = bestScore != -1;
+            var isChangeable = bestOrders.Count == 0;
+            if (isChangeable)
+                return new(isChangeable, bestScore, init, tabuList);
 
-            return new(isChangeable, bestScore, bestOrders);
+            var resultTabuOrder = bestOrders[Random.Next(0, bestOrders.Count)];
+            tabuList.AddTabuList(resultTabuOrder.Pair);
+
+            return new(isChangeable, bestScore, resultTabuOrder.Order, tabuList);
         }
 
         private class IncludeMoreResult
         {
             public bool IsInclude { get; init; }
             public int Score { get; init; }
-            public IReadOnlyList<Order> Orders { get; init; }
+            public IReadOnlyList<TabuBox> Order { get; init; }
+            public TabuList TabuList { get; init; }
 
-            public IncludeMoreResult(bool isIncloude, int score, IReadOnlyList<Order> orders)
+            public IncludeMoreResult(bool isIncloude, int score, IReadOnlyList<TabuBox> order, TabuList tabuList)
             {
                 IsInclude = isIncloude;
                 Score = score;
-                Orders = orders;
+                Order = order;
+                TabuList = tabuList;
             }
         }
 
@@ -179,11 +182,11 @@ namespace packing_probrem.Search.RectangularPackingProbelm
             }
         }
 
-        private record Order(IReadOnlyList<TabuBox> Value, Pair index);
+        private record TabuOrder(IReadOnlyList<TabuBox> Order, Pair Pair);
 
         public override string ToString()
         {
-            return $"Tabu Search, {TabuListLength}";
+            return $"Tabu Search-{TabuListLength}";
         }
     }
 }

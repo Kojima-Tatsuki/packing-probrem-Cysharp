@@ -24,10 +24,11 @@ namespace packing_probrem
 
             var section = new Section(new(33, 16));
             Console.WriteLine($"Section {section}");
+            var date = DateTime.Now;
 
-            var doer = new Doer(false, section);
+            var doer = new Doer(false, section, date, TimeSpan.FromMinutes(1));
 
-            const int LoopCount = 10;
+            const int LoopCount = 1;
 
             List<Dictionary<string, int>> lst = new List<Dictionary<string, int>>(LoopCount);
 
@@ -43,7 +44,7 @@ namespace packing_probrem
 
             using var sw = new StreamWriter(
                 append: true,
-                path: Environment.CurrentDirectory + $"\\result\\pushed-{boxCount}.txt");
+                path: Environment.CurrentDirectory + $"\\result\\pushed-{boxCount}-{date.ToString("yyyyMMdd-HHmmss")}.txt");
 
             sw.WriteLine($"Result\n{DateTime.Now}\n");
 
@@ -73,7 +74,7 @@ namespace packing_probrem
                         warst = current;
                 }
 
-                sw.WriteLine($"{item.Key}\nAve: {(float)sum / item.Value.Count}, Best: {best}, Wearst: {warst}\n");
+                sw.WriteLine($"{item.Key}, Ave: {(float)sum / item.Value.Count}, Best: {best}, Wearst: {warst}\n");
             }
         }
     }
@@ -83,17 +84,18 @@ namespace packing_probrem
         private bool DrawView { get; init; }
 
         private Section Section { get; init; }
+        private TimeSpan? TimeSpan { get; init; }
+        private DateTime CalcDate { get; init; }
 
-        private TimeSpan? Span { get; init; }
-
-        public Doer(bool drawView, Section section, TimeSpan? timeSpan = null)
+        public Doer(bool drawView, Section section, DateTime calcDate, TimeSpan? timeSpan = null)
         {
             DrawView = drawView;
             Section = section;
-            Span = timeSpan;
+            TimeSpan = timeSpan;
+            CalcDate = calcDate;
         }
 
-        public Dictionary<string, int> Do(IReadOnlyList<Box> loadedBoxes, int index = -1)
+        public Dictionary<string, int> Do(IReadOnlyList<Box> loadedBoxes, int index = 0)
         {
             var bl = new BottomLeftAlgolism(Section, false);
 
@@ -150,35 +152,24 @@ namespace packing_probrem
                 new RandomPartialNeighborhoodSearch(bl, 0.005f, RandomPartialNeighborhoodSearch.RatioType.ExponentialUpdate),
             };
 
-            if (index != -1)
-                Console.WriteLine($"\n[{index}] == Start Search ==");
-            else Console.WriteLine($"\n == Start Search ==");
-
-            List<(SearchResult result, string name)> results;
-
+            Console.WriteLine($"\n[{index}] == Start Search ==");
             var startDate = DateTime.Now;
 
-            results = searchs
+            var results = searchs
                 .AsParallel()
                 .WithDegreeOfParallelism(12)
                 .Select(s =>
                 {
-                    if (index != -1)
-                        Console.WriteLine($"[{index}] Start {s.ToString()}");
-                    else Console.WriteLine($"Start {s.ToString()}");
-
-                    var result = (result: s.Search(loadedBoxes, TimeSpan.FromSeconds(15)), name: s.ToString());
-
-                    if (index != -1)
-                        Console.WriteLine($"[{index}] End {result.name}, score: {result.result.Score}");
-                    else Console.WriteLine($"End {result.name}, score: {result.result.Score}");
-
+                    // Console.WriteLine($"[{index}] Start {s.ToString()}");
+                    var result = (result: s.Search(loadedBoxes, TimeSpan), name: s.ToString());
+                    Console.WriteLine($"[{index}] End {result.name}, Score: {result.result.Score}, Iter: {result.result.Iterations}");
                     return result;
                 })
                 .ToList();
 
-            // 図形描画
+            Console.WriteLine($"[{index}] == End Calculate ==\n");
 
+            // 図形描画
             if (DrawView)
             {
                 foreach (var result in results)
@@ -193,21 +184,14 @@ namespace packing_probrem
                 }
             }
 
-            // コンソール出力
-
-            if (index != -1)
-                Console.WriteLine($"[{index}] == End Calculate ==\n");
-            else Console.WriteLine($" == End Calculate ==\n");
-
             var lsrs = results
                 .Select(res => new ResultConstoler(res.result, bl, Section, res.name))
                 .ToList();
 
             // ファイル書き込み
-
             var writer = new ResultWriter();
             writer.Write(
-                filePath: Environment.CurrentDirectory + $"\\result\\pushed-{loadedBoxes.Count}.txt",
+                filePath: Environment.CurrentDirectory + $"\\result\\pushed-{loadedBoxes.Count}-{CalcDate.ToString("yyyyMMdd-HHmmss")}.txt",
                 startDate: startDate,
                 constolers: lsrs);
 
@@ -281,7 +265,7 @@ namespace packing_probrem
             {
                 sw.WriteLine($"[{i}]: {command.PushedRects[i]}");
             }
-            sw.WriteLine($"Iter Count: {command.}")
+            sw.WriteLine($"Iter Count: {command.IterCount}");
             Console.WriteLine("\n");
         }
 
@@ -310,17 +294,15 @@ namespace packing_probrem
             sw.WriteLine($"Start date: {startDate}");
             sw.WriteLine($"Section: {def.Section}");
             sw.WriteLine($"Put Boxes, count: {def.Result.Order.Count}");
-            for (int i = 0; i < def.Result.Order.Count; i++)
-                sw.WriteLine($"[{i}]: {def.Result.Order[i]}");
+            /*for (int i = 0; i < def.Result.Order.Count; i++)
+                sw.WriteLine($"[{i}]: {def.Result.Order[i]}");*/
 
             foreach (var cons in constolers)
             {
-                sw.WriteLine();
-                sw.WriteLine(cons.SearchAlgolismName);
-                sw.WriteLine($"Best Score: {cons.Result.Score}");
+                sw.WriteLine($"{cons.SearchAlgolismName}, Best Score: {cons.Result.Score}, Iter: {cons.Result.Iterations}");
 
-                for (int i = 0; i < cons.Result.Scores.Count; i++)
-                    sw.WriteLine($"[{i}]: {cons.Result.Scores[i]}");
+                /*for (int i = 0; i < cons.Result.Scores.Count; i++)
+                    sw.WriteLine($"[{i}]: {cons.Result.Scores[i]}");*/
 
                 /*sw.WriteLine($"PushedRects, count: {cons.Pushed.Count}");
                 for (int i = 0; i < cons.Pushed.Count; i++)

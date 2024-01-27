@@ -11,15 +11,11 @@ namespace packing_probrem.Search.RectangularPackingProbelm
     internal class RandomPartialNeighborhoodSearch : ISearch
     {
         private IAlgolism Algolism { get; init; }
+        private Random Random { get; init; }
 
         private float PartialRatio { get; init; }
         private float MinPartialRatio { get; init; }
         private RatioType RatioPatern { get; init; }
-
-        private Random Random { get; init; }
-
-        private int IterMax { get; init; }
-        private int TimeIterMax { get; init; }
 
         /// <param name="partial">0 ~ 1</param>
         public RandomPartialNeighborhoodSearch(IAlgolism algolism, float partial, RatioType type)
@@ -29,9 +25,6 @@ namespace packing_probrem.Search.RectangularPackingProbelm
             MinPartialRatio = 0.005f;
             RatioPatern = type;
 
-            IterMax = 100;
-            TimeIterMax = int.MaxValue;
-
             Random = new Random();
         }
 
@@ -40,57 +33,64 @@ namespace packing_probrem.Search.RectangularPackingProbelm
             var bestScore = Algolism.Cal(init);
             var bestOrder = init;
 
+            var currentOrder = bestOrder;
+            var currentScore = bestScore;
+
             var scores = new List<int>() { bestScore };
+
+            var searchTime = timeSpan ?? TimeSpan.FromSeconds(init.ToList().Count);
             var startTime = DateTime.Now;
+            var loopCount = 0;
 
-            var itrMax = timeSpan == null ? IterMax : TimeIterMax;
-            var changed = GetNaightborhoodBest(init, 0, itrMax);
-
-            int i = 1;
-
-            for (;
-                i < itrMax &&
-                timeSpan == null ? true : DateTime.Now.Subtract(startTime) < timeSpan; i++)
+            while (DateTime.Now.Subtract(startTime) < searchTime)
             {
-                if (changed.score < bestScore)
+                var timeRatio = DateTime.Now.Subtract(startTime).TotalSeconds / searchTime.TotalSeconds;
+
+                var ratio = RatioPatern switch
                 {
-                    bestScore = changed.score;
-                    bestOrder = changed.order;
+                    RatioType.Fix => PartialRatio,
+                    RatioType.LinerUpdate => (float)timeRatio * (PartialRatio - MinPartialRatio) + MinPartialRatio,
+                    RatioType.ExponentialUpdate => MinPartialRatio * MathF.Pow(PartialRatio / MinPartialRatio, (float)timeRatio),
+                    _ => throw new Exception("Invalid RatioType")
+                };
+
+                var changed = GetNaightborhoodBest(currentOrder, ratio);
+
+                currentOrder = changed.order;
+                currentScore = changed.score;
+
+                if (currentScore < bestScore)
+                {
+                    bestScore = currentScore;
+                    bestOrder = currentOrder;
                     scores.Add(bestScore);
                 }
 
-                //Console.WriteLine($"[{i}]: current score {bestScore}");
-                changed = GetNaightborhoodBest(changed.order, i, itrMax);
+                loopCount++;
             }
 
-            return new SearchResult(bestScore, bestOrder, scores, i);
+            return new SearchResult(bestScore, bestOrder, scores, loopCount);
         }
 
         /// <summary>部分近傍内で最も良い結果を返す</summary>
-        private (int score, IReadOnlyList<Box> order) GetNaightborhoodBest(IReadOnlyList<Box> rects, int itr, int itrMax)
+        private (int score, IReadOnlyList<Box> order) GetNaightborhoodBest(IReadOnlyList<Box> rects, float peartialRatio)
         {
-            var bestResult = -1;
-            var bestOrders = new List<IReadOnlyList<Box>> { rects };
+            var bestResult = int.MaxValue;
+            var bestOrders = new List<IReadOnlyList<Box>>();
 
-            for (int i = 0; i < rects.Count - 2; i++)
+            for (int i = 0; i < rects.Count; i++)
             {
-                for (int k = i + 1; k < rects.Count - 1; k++)
+                for (int k = i + 1; k < rects.Count; k++)
                 {
-                    float ratio = RatioPatern switch
-                    {
-                        RatioType.Fix => (float)Random.NextDouble(),
-                        RatioType.LinerUpdate => itr / itrMax * (PartialRatio - MinPartialRatio) + MinPartialRatio,
-                        RatioType.ExponentialUpdate => MinPartialRatio * MathF.Pow(PartialRatio / MinPartialRatio, itr / itrMax),
-                        _ => (float)Random.NextDouble()
-                    };
+                    var raito = (float)Random.NextDouble();
 
-                    if (PartialRatio <= ratio)
+                    if (peartialRatio <= raito)
                         continue;
 
                     var order = rects.ChangeOrder(i, k);
                     var calResult = Algolism.Cal(order);
 
-                    if (calResult < bestResult || bestResult == -1)
+                    if (calResult < bestResult)
                     {
                         bestResult = calResult;
                         bestOrders = new List<IReadOnlyList<Box>> { order };
@@ -100,7 +100,7 @@ namespace packing_probrem.Search.RectangularPackingProbelm
                 }
             }
 
-            if (bestResult == -1)
+            if (bestOrders.Count == 0)
                 return (Algolism.Cal(rects), rects);
 
             var resultOrder = bestOrders[Random.Next(0, bestOrders.Count)];

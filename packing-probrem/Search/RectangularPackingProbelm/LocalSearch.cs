@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using packing_probrem.domain.RectangularPackingProbelm;
 using packing_probrem.Search.Extentions;
@@ -20,24 +21,26 @@ namespace packing_probrem.Search.RectangularPackingProbelm
         {
             var bestScore = Algolism.Cal(init);
             var bestOrder = init;
+            var searchTime = timeSpan ?? TimeSpan.FromSeconds(init.ToList().Count);
             var startTime = DateTime.Now;
-
-            var changed = IsIncludeMore(init);
 
             var scores = new List<int> { bestScore };
 
-            int i = 0;
+            int loopCount = 0;
 
-            while (changed.isInclude && timeSpan == null ? true : DateTime.Now.Subtract(startTime) < timeSpan)
+            while (DateTime.Now.Subtract(startTime) < searchTime)
             {
+                var changed = IsIncludeMore(bestOrder);
+
+                if (!changed.isInclude)
+                    break;
+
                 bestScore = changed.score;
                 bestOrder = changed.order;
                 scores.Add(changed.score);
-
-                changed = IsIncludeMore(bestOrder);
-                i++;
+                loopCount++;
             }
-            return new SearchResult(bestScore, bestOrder, scores, i);
+            return new SearchResult(bestScore, bestOrder, scores, loopCount);
         }
 
         // より良い解が存在するか
@@ -81,9 +84,15 @@ namespace packing_probrem.Search.Extentions
     public static class ListExtention
     {
         /// <summary>指定した位置の要素を指定したインデックス位置に変更します。</summary>
-        public static List<T> ChangeOrder<T>(this IReadOnlyList<T> list, int oldIndex, int newIndex)
+        public static IReadOnlyList<T> ChangeOrder<T>(this IReadOnlyList<T> list, int oldIndex, int newIndex)
         {
-            var result = new List<T>(list);
+            var newOrder = list.ToList();
+            var tmp = newOrder[oldIndex];
+            newOrder[oldIndex] = newOrder[newIndex];
+            newOrder[newIndex] = tmp;
+            return newOrder;
+
+            /*var result = new List<T>(list);
             if (newIndex > result.Count)
                 throw new ArgumentOutOfRangeException(nameof(newIndex));
 
@@ -98,7 +107,7 @@ namespace packing_probrem.Search.Extentions
             else
                 result.Insert(newIndex, item);
 
-            return result;
+            return result;*/
         }
     }
 }
