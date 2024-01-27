@@ -26,8 +26,6 @@ namespace packing_probrem.Search.RectangularPackingProbelm
             var tabuList = new TabuList(TabuListLength ?? (int)Math.Sqrt(init.Count));
 
             var tabuBoxes = init.Select((box, index) => new TabuBox(index, box)).ToList();
-            var boxDictionary = tabuBoxes
-                .ToDictionary(pair => pair.Index, pair => pair);
 
             var bestScore = Algolism.Cal(tabuBoxes);
             var bestOrder = tabuBoxes;

@@ -26,7 +26,7 @@ namespace packing_probrem
             Console.WriteLine($"Section {section}");
             var date = DateTime.Now;
 
-            var searchTime = TimeSpan.FromSeconds(30);
+            var searchTime = TimeSpan.FromMinutes(10);
             var doer = new Doer(false, section, date, searchTime);
 
             const int LoopCount = 1;
